@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STORM ZX-6R | SuperSport Engineering</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&family=Share+Tech+Mono&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff41;
+            --primary-dim: rgba(0,255,65,0.18);
+            --primary-glow: 0 0 18px #00ff41, 0 0 40px #00ff4180;
+            --accent: #ffffff;
+            --red: #ff003c;
+            --bg-deep: #05050a;
+            --bg-panel: rgba(12,12,20,0.92);
+            --glass: rgba(255,255,255,0.04);
+            --border: 1px solid rgba(255,255,255,0.08);
+            --border-green: 1px solid rgba(0,255,65,0.35);
+            --text-main: #dde0e8;
+            --text-muted: #666880;
+            --ease-out: cubic-bezier(0.215,0.61,0.355,1);
+            --font-th: 'Kanit', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+        /* ===================== LOADER / SPEEDOMETER ===================== */
+        #loader {
+            position:fixed; inset:0; background:#000; z-index:9999;
+            display:flex; flex-direction:column; justify-content:center; align-items:center;
+            transition: opacity 0.7s ease;
+        }
+        #loader.hidden { opacity:0; pointer-events:none; }
+
+        .speedo-wrap {
+            position:relative; width:300px; height:300px;
+        }
+        .speedo-svg { width:100%; height:100%; }
+
+        /* Needle */
+        #needle {
+            transform-origin: 150px 155px;
+            transform: rotate(-130deg);
+            transition: transform 0.05s linear;
+        }
+
+        .speedo-center-text {
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-45%);
+            text-align:center;
+        }
+        .speedo-speed {
+            font-family:'Orbitron'; font-size:2.8rem; font-weight:900; color:#fff;
+            line-height:1; text-shadow: var(--primary-glow);
+        }
+        .speedo-unit { font-family:'Share Tech Mono'; font-size:0.8rem; color:var(--text-muted); letter-spacing:3px; }
+        .speedo-rpm-display {
+            font-family:'Share Tech Mono'; font-size:0.75rem; color:var(--primary);
+            margin-top:5px; letter-spacing:2px;
+        }
+
+        /* RPM bar lights */
+        .rpm-lights { display:flex; gap:4px; margin-top:20px; }
+        .rpm-dot { width:14px; height:14px; border-radius:50%; background:#1a1a2e; border:1px solid #333; transition:0.1s; }
+        .rpm-dot.green { background:var(--primary); box-shadow: 0 0 8px var(--primary); }
+        .rpm-dot.yellow { background:#ffae00; box-shadow: 0 0 8px #ffae00; }
+        .rpm-dot.red { background:#ff003c; box-shadow: 0 0 8px #ff003c; }
+
+        .loader-brand {
+            font-family:'Orbitron'; font-size:1rem; letter-spacing:6px; color:var(--text-muted);
+            margin-top:25px; text-transform:uppercase;
+        }
+        .loader-model {
+            font-family:'Orbitron'; font-size:2rem; font-weight:900; letter-spacing:3px;
+            color:#fff; text-shadow:var(--primary-glow);
+            margin-top:5px;
+        }
+        .loader-year {
+            font-family:'Share Tech Mono'; font-size:1rem; color:var(--primary);
+            letter-spacing:5px; margin-top:5px;
+        }
+        .loader-bar-wrap { width:280px; height:3px; background:#111; margin-top:20px; border-radius:2px; overflow:hidden; }
+        .loader-bar-fill { width:0%; height:100%; background:linear-gradient(90deg,var(--primary),#00ffaa); border-radius:2px; transition: width 0.05s linear; }
+        .loader-status { font-family:'Share Tech Mono'; font-size:0.65rem; color:var(--text-muted); margin-top:8px; letter-spacing:2px; }
+
+        /* ===================== BODY ===================== */
+        body {
+            font-family: var(--font-th), 'Rajdhani', sans-serif;
+            background:var(--bg-deep); color:var(--text-main);
+            height:100vh; overflow:hidden;
+            display:flex; flex-direction:row;
+        }
+        body.mobile-layout { height:auto; overflow-y:auto; min-height:100vh; flex-direction:column; }
+
+        /* ===================== BACKGROUND ===================== */
+        .bg-wrap { position:fixed; inset:0; z-index:-1; overflow:hidden; }
+        .bg-radial { position:absolute; inset:0;
+            background: radial-gradient(ellipse at 60% 40%, #0f1a0f 0%, #050508 55%, #000 100%); }
+        .grid-floor {
+            position:absolute; bottom:-20%; left:-50%; width:200%; height:100%;
+            background-image:
+                linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+            background-size:60px 60px;
+            transform:perspective(900px) rotateX(75deg);
+            animation:floorMove 25s linear infinite;
+            mask-image:linear-gradient(to top, black 10%, transparent 75%);
+        }
+        .scanlines {
+            position:absolute; inset:0; pointer-events:none;
+            background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+        }
+        .ambient-glow {
+            position:absolute; top:40%; left:55%; width:700px; height:700px;
+            background:radial-gradient(circle, rgba(0,255,65,0.12) 0%, transparent 70%);
+            transform:translate(-50%,-50%); filter:blur(80px);
+            transition:all 0.5s ease; pointer-events:none;
+        }
+        .corner-decor {
+            position:absolute; width:120px; height:120px; pointer-events:none;
+        }
+        .corner-decor.tl { top:0; left:0; border-top:2px solid rgba(0,255,65,0.3); border-left:2px solid rgba(0,255,65,0.3); }
+        .corner-decor.tr { top:0; right:0; border-top:2px solid rgba(0,255,65,0.3); border-right:2px solid rgba(0,255,65,0.3); }
+        .corner-decor.bl { bottom:0; left:0; border-bottom:2px solid rgba(0,255,65,0.3); border-left:2px solid rgba(0,255,65,0.3); }
+        .corner-decor.br { bottom:0; right:0; border-bottom:2px solid rgba(0,255,65,0.3); border-right:2px solid rgba(0,255,65,0.3); }
+
+        body.engine-on .ambient-glow { filter:blur(50px) brightness(2); animation:plasmaPulse 0.12s infinite alternate; }
+        body.engine-on .grid-floor { animation:floorMove 2s linear infinite; }
+
+        @keyframes floorMove { from{background-position:0 0} to{background-position:0 600px} }
+        @keyframes plasmaPulse {
+            0%{transform:translate(-50%,-50%) scale(1); opacity:0.8}
+            100%{transform:translate(-50%,-50%) scale(1.15); opacity:1}
+        }
+
+        /* ===================== SIDEBAR ===================== */
+        .sidebar {
+            width:72px; height:100vh; flex-shrink:0;
+            background:rgba(5,5,10,0.95); backdrop-filter:blur(20px);
+            border-right:var(--border-green);
+            display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+            padding:25px 0; z-index:100;
+            transition:width 0.35s var(--ease-out);
+            position:relative;
+        }
+        .sidebar::after {
+            content:''; position:absolute; right:-1px; top:20%; bottom:20%; width:1px;
+            background:linear-gradient(to bottom, transparent, var(--primary), transparent);
+        }
+        .sidebar:hover { width:210px; }
+
+        .brand-icon {
+            font-family:'Orbitron'; font-weight:900; font-size:1.2rem; color:var(--primary);
+            text-shadow:var(--primary-glow); margin-bottom:15px;
+            writing-mode:vertical-rl; transform:rotate(180deg); transition:0.3s;
+            white-space:nowrap; overflow:hidden;
+        }
+        .sidebar:hover .brand-icon { writing-mode:horizontal-tb; transform:rotate(0deg); font-size:1.1rem; }
+
+        .sidebar-version {
+            font-family:'Share Tech Mono'; font-size:0.55rem; color:var(--text-muted);
+            letter-spacing:2px; margin-bottom:25px; opacity:0; transition:0.3s;
+        }
+        .sidebar:hover .sidebar-version { opacity:1; }
+
+        .nav-menu { width:100%; display:flex; flex-direction:column; gap:4px; flex:1; }
+
+        .nav-item {
+            display:flex; align-items:center; padding:14px 24px;
+            color:var(--text-muted); text-decoration:none;
+            position:relative; transition:0.3s; overflow:hidden;
+            white-space:nowrap; cursor:pointer;
+        }
+        .nav-item::before {
+            content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+            background:var(--primary); transform:scaleY(0); transition:0.3s;
+            box-shadow:var(--primary-glow);
+        }
+        .nav-item::after {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(90deg, rgba(0,255,65,0.08), transparent);
+            opacity:0; transition:0.3s;
+        }
+        .nav-item:hover, .nav-item.active { color:var(--accent); }
+        .nav-item:hover::before, .nav-item.active::before { transform:scaleY(1); }
+        .nav-item:hover::after, .nav-item.active::after { opacity:1; }
+
+        .nav-icon { font-size:1.15rem; min-width:24px; text-align:center; margin-right:14px; position:relative; z-index:1; }
+        .nav-text { font-family:'Orbitron'; font-size:0.75rem; letter-spacing:1px; opacity:0; transition:0.3s; position:relative; z-index:1; }
+        .sidebar:hover .nav-text { opacity:1; }
+
+        .nav-badge {
+            position:absolute; right:10px; top:50%; transform:translateY(-50%);
+            background:var(--primary); color:#000; font-family:'Orbitron';
+            font-size:0.5rem; font-weight:700; padding:2px 5px; border-radius:2px;
+            opacity:0; transition:0.3s;
+        }
+        .sidebar:hover .nav-badge { opacity:1; }
+
+        .sidebar-bottom { width:100%; padding:0 15px; }
+        .sidebar-time {
+            font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--primary);
+            text-align:center; padding:10px 0; border-top:var(--border);
+            white-space:nowrap; overflow:hidden;
+        }
+        .sidebar-time .time-val { display:none; }
+        .sidebar:hover .time-val { display:inline; }
+        .sidebar-time .time-icon { display:inline; }
+
+        /* ===================== MAIN STAGE ===================== */
+        .main-stage {
+            flex:1; padding:20px; overflow:hidden;
+            display:grid;
+            grid-template-columns:1fr 420px;
+            grid-template-rows:auto 1fr;
+            gap:20px;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            grid-column:1/-1; display:flex; justify-content:space-between; align-items:flex-end;
+            padding-bottom:18px; border-bottom:var(--border);
+            position:relative;
+        }
+        .top-bar::after {
+            content:''; position:absolute; bottom:-1px; left:0; width:180px; height:2px;
+            background:linear-gradient(90deg, var(--primary), transparent);
+        }
+
+        .model-header { line-height:1; }
+        .model-header .project-label {
+            font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--primary);
+            letter-spacing:6px; display:block; margin-bottom:4px;
+        }
+        .model-header h1 {
+            font-family:'Orbitron'; font-size:3.2rem; font-weight:900;
+            letter-spacing:-2px; color:#fff; text-shadow:0 0 30px rgba(0,255,65,0.3);
+            line-height:1;
+        }
+        .model-header h1 span { color:var(--primary); }
+        .model-subtitle {
+            font-family:'Share Tech Mono'; font-size:0.65rem; color:var(--text-muted);
+            letter-spacing:4px; margin-top:6px;
+        }
+
+        .top-right { display:flex; align-items:center; gap:20px; }
+
+        .live-stats { display:flex; gap:15px; }
+        .live-stat { text-align:center; }
+        .live-stat .ls-val { font-family:'Share Tech Mono'; font-size:1rem; color:var(--primary); display:block; }
+        .live-stat .ls-lbl { font-size:0.6rem; color:var(--text-muted); letter-spacing:1px; display:block; }
+
+        .divider-v { width:1px; height:40px; background:rgba(255,255,255,0.1); }
+
+        .rider-card {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 15px; border:var(--border-green);
+            background:rgba(0,255,65,0.04); border-radius:3px;
+        }
+        .rider-info .label { font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; display:block; }
+        .rider-info .name { font-family:'Orbitron'; font-size:1rem; font-weight:700; color:var(--accent); }
+        .rider-avatar {
+            width:38px; height:38px; border-radius:3px;
+            border:1px solid var(--primary);
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.2rem; background:rgba(0,255,65,0.08);
+            box-shadow:var(--primary-glow);
+        }
+
+        /* ===================== BIKE AREA ===================== */
+        .bike-area {
+            grid-column:1; grid-row:2;
+            display:flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            position:relative; overflow:hidden;
+        }
+
+        .bike-hud {
+            position:absolute; top:10px; left:10px;
+            display:flex; flex-direction:column; gap:8px;
+        }
+        .hud-item {
+            display:flex; align-items:center; gap:8px;
+            font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--text-muted);
+        }
+        .hud-dot { width:6px; height:6px; border-radius:50%; background:var(--primary); box-shadow:0 0 6px var(--primary); }
+
+        .bike-img-wrap {
+            position:relative; display:flex; justify-content:center; align-items:center;
+            width:100%; flex:1;
+        }
+        .bike-img {
+            max-width:100%; max-height:55vh; object-fit:contain;
+            filter:drop-shadow(0 20px 60px rgba(0,0,0,0.9)) drop-shadow(0 0 30px rgba(0,255,65,0.15));
+            animation:hoverBike 4s ease-in-out infinite;
+            z-index:10; transition:filter 0.4s ease;
+        }
+        body.engine-on .bike-img {
+            animation:engineVibrate 0.06s infinite;
+            filter:drop-shadow(0 20px 80px rgba(0,0,0,0.9)) drop-shadow(0 0 60px var(--primary));
+        }
+        .bike-shadow {
+            position:absolute; bottom:8%; width:55%; height:18px;
+            background:radial-gradient(ellipse, rgba(0,0,0,0.8) 0%, transparent 70%);
+            border-radius:50%; transform:scaleY(0.5); z-index:1;
+        }
+
+        /* Crosshair scan */
+        .scan-line {
+            position:absolute; left:0; right:0; height:1px;
+            background:linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation:scanAnim 4s ease-in-out infinite; opacity:0.4; pointer-events:none;
+        }
+        @keyframes scanAnim { 0%,100%{top:10%; opacity:0} 10%{opacity:0.5} 50%{top:90%; opacity:0.3} 90%{opacity:0.5} }
+
+        /* Bottom color selector */
+        .bike-controls {
+            width:100%; padding:15px 20px;
+            display:flex; align-items:center; justify-content:space-between;
+            border-top:var(--border); background:rgba(0,0,0,0.3);
+        }
+        .color-label { font-family:'Share Tech Mono'; font-size:0.65rem; color:var(--text-muted); letter-spacing:2px; }
+        .color-tray { display:flex; gap:8px; }
+        .color-dot {
+            width:22px; height:22px; border-radius:50%; cursor:pointer;
+            border:2px solid rgba(255,255,255,0.15); transition:0.3s; position:relative;
+        }
+        .color-dot::after {
+            content:''; position:absolute; inset:-4px; border-radius:50%;
+            border:2px solid transparent; transition:0.3s;
+        }
+        .color-dot:hover { transform:scale(1.3); border-color:rgba(255,255,255,0.6); }
+        .color-dot.active::after { border-color:#fff; }
+
+        .color-name { font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--primary); letter-spacing:1px; min-width:100px; text-align:right; }
+
+        /* ===================== SPECS PANEL ===================== */
+        .specs-panel {
+            grid-column:2; grid-row:2;
+            background:var(--bg-panel); border:var(--border-green);
+            backdrop-filter:blur(20px);
+            display:flex; flex-direction:column; overflow:hidden;
+            border-radius:4px; position:relative;
+        }
+        .specs-panel::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:2px;
+            background:linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .panel-header {
+            padding:15px 20px 0;
+            display:flex; align-items:center; gap:10px;
+        }
+        .panel-header-icon { font-size:1.5rem; }
+        .panel-header-title { font-family:'Orbitron'; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:2px; }
+        .panel-header-sub { font-family:'Share Tech Mono'; font-size:0.6rem; color:var(--text-muted); letter-spacing:3px; }
+
+        /* TABS */
+        .tabs-wrap { margin-top:12px; }
+        .tabs-header {
+            display:flex; padding:0 8px; gap:4px; border-bottom:var(--border);
+        }
+        .tab-btn {
+            flex:1; background:transparent; border:none; color:var(--text-muted);
+            padding:10px 4px; cursor:pointer; font-family:'Orbitron'; font-size:0.6rem;
+            letter-spacing:1px; transition:0.3s; border-bottom:2px solid transparent;
+            position:relative; text-transform:uppercase;
+        }
+        .tab-btn:hover { color:var(--accent); }
+        .tab-btn.active {
+            color:var(--primary); border-bottom-color:var(--primary);
+            background:rgba(0,255,65,0.04);
+        }
+
+        .tab-content {
+            padding:18px; flex:1; overflow-y:auto; display:none;
+            animation:fadeUp 0.3s ease;
+        }
+        .tab-content::-webkit-scrollbar { width:3px; }
+        .tab-content::-webkit-scrollbar-thumb { background:rgba(0,255,65,0.3); border-radius:2px; }
+        .tab-content.active { display:block; }
+
+        /* Section */
+        .section-title {
+            font-family:'Orbitron'; font-size:0.7rem; color:var(--primary);
+            letter-spacing:3px; padding:5px 0 5px 10px;
+            border-left:3px solid var(--primary); margin-bottom:10px;
+            display:flex; align-items:center; gap:8px;
+        }
+        .section-icon { font-size:0.9rem; }
+
+        /* Data grid */
+        .data-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:16px; }
+        .data-item {
+            background:rgba(255,255,255,0.02); padding:8px 10px;
+            border:1px solid rgba(255,255,255,0.05); border-radius:2px;
+            transition:0.3s; cursor:default;
+        }
+        .data-item:hover { border-color:rgba(0,255,65,0.4); background:rgba(0,255,65,0.05); }
+        .data-label { font-size:0.58rem; color:var(--text-muted); display:block; margin-bottom:2px; letter-spacing:0.5px; font-family:var(--font-th); }
+        .data-value { font-family:'Share Tech Mono'; font-size:0.85rem; color:var(--accent); }
+        .data-value.th { font-family:var(--font-th); font-size:0.8rem; }
+        .full { grid-column:span 2; }
+
+        /* Highlight value */
+        .data-value.highlight { color:var(--primary); text-shadow:0 0 10px var(--primary); font-size:0.95rem; }
+
+        /* Bar indicator */
+        .bar-wrap { margin-top:4px; }
+        .bar-track { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-top:3px; }
+        .bar-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, var(--primary), #00ffaa); transition:width 1s ease; }
+
+        /* ===================== PANEL FOOTER ===================== */
+        .panel-footer {
+            padding:15px 18px; border-top:var(--border); background:rgba(0,0,0,0.4);
+            display:flex; flex-direction:column; gap:10px;
+        }
+
+        .btn-start {
+            background:transparent; border:var(--border-green); color:var(--primary);
+            padding:14px; font-family:'Orbitron'; font-weight:700; font-size:0.8rem;
+            letter-spacing:3px; cursor:pointer; transition:0.3s;
+            position:relative; overflow:hidden; text-transform:uppercase;
+            display:flex; justify-content:center; align-items:center; gap:10px;
+            clip-path:polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        }
+        .btn-start::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(135deg, transparent 40%, rgba(0,255,65,0.1));
+        }
+        .btn-start:hover {
+            background:var(--primary); color:#000;
+            box-shadow:0 0 30px var(--primary), 0 0 60px rgba(0,255,65,0.3);
+        }
+        .btn-start.running {
+            background:rgba(255,0,60,0.1); border-color:var(--red); color:var(--red);
+        }
+        .btn-start.running:hover { background:var(--red); color:#fff; box-shadow:0 0 30px var(--red); }
+
+        .engine-indicator {
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            font-family:'Share Tech Mono'; font-size:0.65rem; color:var(--text-muted);
+        }
+        .eng-light {
+            width:8px; height:8px; border-radius:50%; background:#222;
+            border:1px solid #333; transition:0.3s;
+        }
+        .eng-light.on { background:var(--primary); border-color:var(--primary); box-shadow:0 0 8px var(--primary); animation:blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* ===================== ANIMATIONS ===================== */
+        @keyframes hoverBike { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes engineVibrate {
+            0%{transform:translate(1px,1px) rotate(0deg)}
+            25%{transform:translate(-2px,-1px) rotate(-0.4deg)}
+            50%{transform:translate(2px,1px) rotate(0.4deg)}
+            75%{transform:translate(-1px,2px) rotate(0deg)}
+            100%{transform:translate(1px,-2px) rotate(-0.3deg)}
+        }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ===================== MOBILE ===================== */
+        @media (max-width:900px) {
+            body { flex-direction:column; overflow-y:auto; height:auto; min-height:100vh; }
+            .sidebar {
+                position:fixed; bottom:0; left:0; width:100%; height:60px;
+                flex-direction:row; justify-content:space-around; padding:0;
+                border-right:none; border-top:var(--border-green); border-right:none;
+                z-index:200;
+            }
+            .sidebar::after { display:none; }
+            .sidebar:hover { width:100%; }
+            .brand-icon, .sidebar-version, .sidebar-bottom { display:none; }
+            .nav-menu { flex-direction:row; gap:0; width:100%; align-items:stretch; }
+            .nav-item {
+                flex-direction:column; padding:4px; justify-content:center;
+                align-items:center; background:none; flex:1;
+            }
+            .nav-item:hover, .nav-item.active { background:none; color:var(--primary); }
+            .nav-item::before { width:40%; height:2px; top:0; bottom:auto; left:30%; transform:scaleX(0); transform-origin:center; }
+            .nav-item.active::before { transform:scaleX(1); }
+            .nav-icon { margin:0; font-size:1.3rem; margin-bottom:2px; }
+            .nav-text { font-size:0.55rem; opacity:1; }
+            .nav-badge { display:none; }
+
+            .main-stage { display:block; padding:12px; padding-bottom:80px; }
+            .top-bar { flex-direction:column; align-items:flex-start; gap:10px; border:none; padding:0; margin-bottom:15px; }
+            .top-bar::after { display:none; }
+            .top-right { width:100%; justify-content:space-between; }
+            .live-stats { gap:10px; }
+            .model-header h1 { font-size:2.5rem; }
+            .bike-area { height:280px; margin-bottom:15px; }
+            .bike-img { max-height:240px; }
+            .specs-panel { border:var(--border-green); border-radius:4px; max-height:none; }
+        }
+    </style>
+</head>
+<body>
+
+<audio id="engineSound" loop>
+    <source src="sound/zx6r_sound.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ===================== LOADER ===================== -->
+<div id="loader">
+    <div class="speedo-wrap">
+        <svg class="speedo-svg" viewBox="0 0 300 300">
+            <defs>
+                <filter id="glow-f">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <!-- Background ring -->
+            <circle cx="150" cy="150" r="130" fill="none" stroke="#111" stroke-width="2"/>
+            <!-- Speed arc track -->
+            <path d="M 42,210 A 130,130 0 1,1 258,210" fill="none" stroke="#1a1a1a" stroke-width="12" stroke-linecap="round"/>
+            <!-- Speed arc fill (animated via JS) -->
+            <path id="speedArc" d="M 42,210 A 130,130 0 1,1 258,210" fill="none" stroke="#00ff41" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="0 1000" filter="url(#glow-f)"/>
+            <!-- Tick marks -->
+            <g stroke="#333" stroke-width="1.5">
+                <!-- Generated ticks via transform -->
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(-130,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(-104,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(-78,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(-52,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(-26,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(0,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(26,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(52,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(78,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(104,150,150)"/>
+                <line x1="150" y1="25" x2="150" y2="38" transform="rotate(130,150,150)"/>
+            </g>
+            <!-- Speed labels -->
+            <g font-family="Orbitron,monospace" font-size="10" fill="#555" text-anchor="middle">
+                <text transform="rotate(-130,150,150) translate(0,-120) rotate(130)">0</text>
+                <text transform="rotate(-78,150,150) translate(0,-120) rotate(78)">60</text>
+                <text transform="rotate(-26,150,150) translate(0,-120) rotate(26)">120</text>
+                <text transform="rotate(26,150,150) translate(0,-120) rotate(-26)">180</text>
+                <text transform="rotate(78,150,150) translate(0,-120) rotate(-78)">240</text>
+                <text transform="rotate(130,150,150) translate(0,-120) rotate(-130)">299</text>
+            </g>
+            <!-- Needle -->
+            <g id="needle">
+                <line x1="150" y1="155" x2="150" y2="45" stroke="#00ff41" stroke-width="2.5" stroke-linecap="round" filter="url(#glow-f)"/>
+                <line x1="150" y1="155" x2="150" y2="175" stroke="#ff003c" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <!-- Center hub -->
+            <circle cx="150" cy="155" r="10" fill="#111" stroke="#00ff41" stroke-width="2"/>
+            <circle cx="150" cy="155" r="4" fill="#00ff41"/>
+            <!-- KM/H label -->
+            <text x="150" y="220" text-anchor="middle" font-family="Share Tech Mono,monospace" font-size="9" fill="#555" letter-spacing="3">KM/H</text>
+        </svg>
+        <div class="speedo-center-text">
+            <div class="speedo-speed" id="speedNum">0</div>
+            <div class="speedo-unit">KM/H</div>
+            <div class="speedo-rpm-display" id="rpmDisp">0 RPM</div>
+        </div>
+    </div>
+
+    <div class="rpm-lights">
+        <div class="rpm-dot" id="d1"></div>
+        <div class="rpm-dot" id="d2"></div>
+        <div class="rpm-dot" id="d3"></div>
+        <div class="rpm-dot" id="d4"></div>
+        <div class="rpm-dot" id="d5"></div>
+        <div class="rpm-dot" id="d6"></div>
+        <div class="rpm-dot" id="d7"></div>
+        <div class="rpm-dot" id="d8"></div>
+        <div class="rpm-dot" id="d9"></div>
+        <div class="rpm-dot" id="d10"></div>
+        <div class="rpm-dot" id="d11"></div>
+        <div class="rpm-dot" id="d12"></div>
+    </div>
+
+    <div class="loader-brand">KAWASAKI NINJA</div>
+    <div class="loader-model">ZX-6R</div>
+    <div class="loader-year">636cc · 2018 · STORM EDITION</div>
+    <div class="loader-bar-wrap"><div class="loader-bar-fill" id="loadBar"></div></div>
+    <div class="loader-status" id="loadStatus">INITIALIZING SYSTEM...</div>
+</div>
+
+<!-- ===================== BACKGROUND ===================== -->
+<div class="bg-wrap">
+    <div class="bg-radial"></div>
+    <div class="grid-floor"></div>
+    <div class="scanlines"></div>
+    <div class="ambient-glow" id="ambientGlow"></div>
+    <div class="corner-decor tl"></div>
+    <div class="corner-decor tr"></div>
+    <div class="corner-decor bl"></div>
+    <div class="corner-decor br"></div>
+</div>
+
+<!-- ===================== SIDEBAR ===================== -->
+<nav class="sidebar">
+    <div>
+        <div class="brand-icon">STORM</div>
+        <div class="sidebar-version">v2.0.18</div>
+    </div>
+    <div class="nav-menu">
+        <a href="infomations.html" class="nav-item active">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">SPECS</span>
+            <span class="nav-badge">NEW</span>
+        </a>
+        <a href="gasoline.html" class="nav-item">
+            <span class="nav-icon">⛽</span>
+            <span class="nav-text">FUEL</span>
+        </a>
+        <a href="finance.html" class="nav-item">
+            <span class="nav-icon">💳</span>
+            <span class="nav-text">FINANCE</span>
+        </a>
+        <a href="service.html" class="nav-item">
+            <span class="nav-icon">🔧</span>
+            <span class="nav-text">SERVICE</span>
+        </a>
+    </div>
+    <div class="sidebar-bottom">
+        <div class="sidebar-time">
+            <span class="time-icon">🕐</span>
+            <span class="time-val" id="clockVal"></span>
+        </div>
+    </div>
+</nav>
+
+<!-- ===================== MAIN ===================== -->
+<main class="main-stage">
+    <header class="top-bar">
+        <div class="model-header">
+            <span class="project-label">◈ PROJECT STORM</span>
+            <h1>ZX<span>-6R</span></h1>
+            <div class="model-subtitle">636 CC · SUPERSPORT · 2018 MODEL YEAR</div>
+        </div>
+        <div class="top-right">
+            <div class="live-stats">
+                <div class="live-stat">
+                    <span class="ls-val" id="liveTemp">--°C</span>
+                    <span class="ls-lbl">ENGINE TEMP</span>
+                </div>
+                <div class="live-stat">
+                    <span class="ls-val" id="liveGear">N</span>
+                    <span class="ls-lbl">GEAR</span>
+                </div>
+                <div class="live-stat">
+                    <span class="ls-val" id="livePower">OFF</span>
+                    <span class="ls-lbl">STATUS</span>
+                </div>
+            </div>
+            <div class="divider-v"></div>
+            <div class="rider-card">
+                <div class="rider-info">
+                    <span class="label">AUTHORIZED PILOT</span>
+                    <span class="name">ICETSU</span>
+                </div>
+                <div class="rider-avatar">👤</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- BIKE DISPLAY -->
+    <div class="bike-area">
+        <div class="hud-item" style="position:absolute;top:10px;left:10px;z-index:20">
+            <div class="hud-dot"></div>
+            <span style="font-family:'Share Tech Mono';font-size:0.65rem;color:#666;">KAWASAKI NINJA ZX-6R 636</span>
+        </div>
+        <div class="bike-img-wrap">
+            <div class="scan-line"></div>
+            <img src="images/Storm.jpg" alt="Kawasaki ZX-6R 2018" class="bike-img" id="bike">
+            <div class="bike-shadow"></div>
+        </div>
+        <div class="bike-controls">
+            <span class="color-label">◈ LIVERY SYSTEM</span>
+            <div class="color-tray" id="colorTray"></div>
+            <span class="color-name" id="colorName">KRT GREEN</span>
+        </div>
+    </div>
+
+    <!-- SPECS PANEL -->
+    <aside class="specs-panel">
+        <div class="panel-header">
+            <span class="panel-header-icon">⚡</span>
+            <div>
+                <div class="panel-header-title">SPEC DATABASE</div>
+                <div class="panel-header-sub">ZX-6R 636 · MY2018 · FULL DATA</div>
+            </div>
+        </div>
+
+        <div class="tabs-wrap">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="openTab('engine',this)">เครื่องยนต์</button>
+                <button class="tab-btn" onclick="openTab('chassis',this)">โครงสร้าง</button>
+                <button class="tab-btn" onclick="openTab('dims',this)">ขนาด</button>
+                <button class="tab-btn" onclick="openTab('elec',this)">อิเล็กทรอนิกส์</button>
+                <button class="tab-btn" onclick="openTab('perf',this)">สมรรถนะ</button>
+            </div>
+
+            <!-- TAB: ENGINE -->
+            <div id="engine" class="tab-content active">
+                <div class="section-title"><span class="section-icon">🔩</span>ระบบเครื่องยนต์</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ประเภทเครื่องยนต์</span>
+                        <span class="data-value th">4 สูบเรียง 4 จังหวะ DOHC ระบายความร้อนด้วยน้ำ</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ความจุกระบอกสูบ</span>
+                        <span class="data-value highlight">636 cc</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระบบวาล์ว</span>
+                        <span class="data-value">DOHC / 16 วาล์ว</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">รูเจาะ × ระยะชัก</span>
+                        <span class="data-value">67.0 × 45.1 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">อัตราส่วนการอัด</span>
+                        <span class="data-value">12.9 : 1</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">แรงม้าสูงสุด</span>
+                        <span class="data-value highlight">136 PS / 13,500 rpm</span>
+                        <div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div></div>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">แรงบิดสูงสุด</span>
+                        <span class="data-value highlight">70.8 Nm / 11,000 rpm</span>
+                        <div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div></div>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">แรงม้า (Ram Air)</span>
+                        <span class="data-value">136 PS @ 13,500</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">กำลัง (kW)</span>
+                        <span class="data-value">97.7 kW</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">⛽</span>ระบบจ่ายเชื้อเพลิง</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ระบบจ่ายเชื้อเพลิง</span>
+                        <span class="data-value th">หัวฉีด DFI ท่อคอลาย Keihin ขนาด 38mm (4 ตัว)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ระบบจุดระเบิด</span>
+                        <span class="data-value">TCBI with Digital Advance</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">สตาร์ทเครื่อง</span>
+                        <span class="data-value th">ไฟฟ้า (Electric)</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระบบหล่อลื่น</span>
+                        <span class="data-value th">อัดแรงดัน Wet Sump</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">⚙️</span>ระบบส่งกำลัง</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">เกียร์</span>
+                        <span class="data-value">6 สปีด / Cassette Style Return</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">คลัตช์</span>
+                        <span class="data-value th">Wet Multi-disc + Assist & Slipper (FCC)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">Quick Shifter</span>
+                        <span class="data-value">KQS (Kawasaki Quick Shifter) — Upshift</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ไดรฟ์สุดท้าย</span>
+                        <span class="data-value">520 Series X-Ring Chain</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">อัตราทดเกียร์</span>
+                        <span class="data-value th" style="font-size:0.7rem">1st 2.714 / 2nd 2.200 / 3rd 1.850 / 4th 1.600 / 5th 1.421 / 6th 1.300</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Final Reduction</span>
+                        <span class="data-value">2.688 (43/16)</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">โหมดพลังงาน</span>
+                        <span class="data-value th">เต็ม / ต่ำ (~80%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CHASSIS -->
+            <div id="chassis" class="tab-content">
+                <div class="section-title"><span class="section-icon">🏗️</span>โครงรถ</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ประเภทโครง</span>
+                        <span class="data-value th">อะลูมิเนียม Perimeter แบบอัดขึ้นรูป</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">มุมเอียงหัว (Rake)</span>
+                        <span class="data-value">23.5°</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Trail</span>
+                        <span class="data-value">103 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">มุมเลี้ยว ซ้าย/ขวา</span>
+                        <span class="data-value">27° / 27°</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">สวิงอาร์ม</span>
+                        <span class="data-value th">อะลูมิเนียม Cast</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">🔄</span>ระบบช่วงล่าง</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">โช้คหน้า</span>
+                        <span class="data-value th">โช้คกลับด้าน Showa SFF-BP 41mm ปรับได้ทุกค่า</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">โช้คหลัง</span>
+                        <span class="data-value th">Uni-Trak Bottom-Link / ก๊าซ / ปรับ Spring + Damping</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระยะยุบหน้า</span>
+                        <span class="data-value">119.3 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระยะยุบหลัง</span>
+                        <span class="data-value">134.6 mm</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">🛑</span>ระบบเบรก</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">เบรกหน้า</span>
+                        <span class="data-value th">จาน 310mm × 2 + คาลิปเปอร์ Monobloc 4 สูบ แบบ Radial</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">เบรกหลัง</span>
+                        <span class="data-value th">จาน 220mm × 1 + คาลิปเปอร์ 1 สูบ (Nissin จาก ZX-10R)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ระบบ ABS</span>
+                        <span class="data-value">KIBS — Kawasaki Intelligent Anti-lock Brake System</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">🏎️</span>ล้อและยาง</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">ยางหน้า</span>
+                        <span class="data-value">120/70 ZR17 M/C</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ยางหลัง</span>
+                        <span class="data-value">180/55 ZR17 M/C</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ยี่ห้อยางแท้</span>
+                        <span class="data-value">Bridgestone Battlax</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ขนาดล้อ</span>
+                        <span class="data-value">17 นิ้ว ทั้งคู่</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: DIMENSIONS -->
+            <div id="dims" class="tab-content">
+                <div class="section-title"><span class="section-icon">📐</span>มิติตัวรถ</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ยาว × กว้าง × สูง</span>
+                        <span class="data-value">2,085 × 705 × 1,115 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระยะฐานล้อ</span>
+                        <span class="data-value">1,395 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ความสูงพื้นถึงท้อง</span>
+                        <span class="data-value">120 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ความสูงเบาะ</span>
+                        <span class="data-value highlight">830 mm</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">น้ำหนักรถพร้อมใช้</span>
+                        <span class="data-value highlight">192 kg (ABS: 194 kg)</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ความจุถังน้ำมัน</span>
+                        <span class="data-value highlight">17 ลิตร</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">💺</span>ที่นั่งและการยศาสตร์</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">จำนวนที่นั่ง</span>
+                        <span class="data-value">2 (คู่)</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ท่านั่ง</span>
+                        <span class="data-value th">สปอร์ต เน้นการควบคุม</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ความสูงเบาะ (นิ้ว)</span>
+                        <span class="data-value">32.7 in (เหมาะผู้สูง ~170 cm ขึ้นไป)</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">🌬️</span>อากาศพลศาสตร์</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ฝาครอบหน้า</span>
+                        <span class="data-value th">ดีไซน์ร่วมกับ ZX-10R คัฟฟิเชียนต์ต้านทานต่ำ</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ท่อ Ram Air</span>
+                        <span class="data-value th">ท่อแนวตรงลดความปั่นป่วน เพิ่มแรงดันอากาศสูงสุด</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: ELECTRONICS -->
+            <div id="elec" class="tab-content">
+                <div class="section-title"><span class="section-icon">🖥️</span>ระบบอิเล็กทรอนิกส์</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">Traction Control</span>
+                        <span class="data-value">KTRC — 3 โหมด + ปิด (Kawasaki Traction Control)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">ABS ระดับสูง</span>
+                        <span class="data-value">KIBS — ควบคุมแรงดันเบรกด้วย ECU แบบ High-Precision</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">Quick Shifter</span>
+                        <span class="data-value th">KQS — เปลี่ยนเกียร์ขึ้นไม่ใช้คลัตช์</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">Power Mode</span>
+                        <span class="data-value th">2 โหมด — เต็ม 100% / ต่ำ ~80% (ตอบสนองไม่รุนแรง)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">KTRC โหมด 1-2</span>
+                        <span class="data-value th">ควบคุมจุดระเบิด — ทำนายก่อนล้อหมุนฟรี (Sport KTRC)</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">KTRC โหมด 3</span>
+                        <span class="data-value th">ควบคุมจุดระเบิด + น้ำมัน + อากาศ — ลื่นไหลสูงสุด</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">📟</span>ไมล์และหน้าปัด</div>
+                <div class="data-grid">
+                    <div class="data-item full">
+                        <span class="data-label">ระบบแสดงผล</span>
+                        <span class="data-value th">แบบ Hybrid — Analog Tachometer + Digital Display</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">กระจก UV-Blocking</span>
+                        <span class="data-value th">ทำให้ LED ชัดขึ้น มองง่ายกลางแดด</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ความเร็วดิจิทัล</span>
+                        <span class="data-value">✓ Digital Speedo</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ตำแหน่งเกียร์</span>
+                        <span class="data-value">✓ Gear Position</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Trip Meter / ODO</span>
+                        <span class="data-value">✓ Multi-function</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Lap Timer</span>
+                        <span class="data-value">✓ Stopwatch</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">นาฬิกา</span>
+                        <span class="data-value">✓ Clock Display</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระบบไฟ</span>
+                        <span class="data-value">LED ทั้งคัน</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PERFORMANCE -->
+            <div id="perf" class="tab-content">
+                <div class="section-title"><span class="section-icon">🏁</span>สมรรถนะ</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">ความเร็วสูงสุด (Est.)</span>
+                        <span class="data-value highlight">~299+ km/h</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">แรงม้า (Ram Air)</span>
+                        <span class="data-value highlight">136 PS</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">อัตราเร่ง 0-100</span>
+                        <span class="data-value">~3.4 วินาที</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">อัตราเร่ง 0-200</span>
+                        <span class="data-value">~10 วินาที</span>
+                    </div>
+                    <div class="data-item full">
+                        <span class="data-label">Power-to-Weight Ratio</span>
+                        <span class="data-value">~0.708 PS/kg (136PS ÷ 192kg)</span>
+                        <div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div></div>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">🛢️</span>น้ำมันเชื้อเพลิง</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">ความจุถัง</span>
+                        <span class="data-value highlight">17 ลิตร</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">น้ำมันแนะนำ</span>
+                        <span class="data-value">95+ RON</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">สิ้นเปลืองน้ำมัน</span>
+                        <span class="data-value">~5–7 L/100km</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระยะทางต่อถัง (Est.)</span>
+                        <span class="data-value">~220–280 km</span>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top:8px"><span class="section-icon">💰</span>ราคาและรุ่น</div>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">ราคา (US, 2018)</span>
+                        <span class="data-value">$12,699 USD</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">รุ่นที่มี</span>
+                        <span class="data-value th">Standard / ABS / KRT Edition</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">การรับประกัน</span>
+                        <span class="data-value">12 เดือน</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">ระดับ</span>
+                        <span class="data-value th">SuperSport 600</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-footer">
+            <div class="engine-indicator">
+                <div class="eng-light" id="engLight"></div>
+                <span id="engStatusText">ENGINE OFFLINE</span>
+            </div>
+            <button class="btn-start" id="btnStart" onclick="toggleEngine()">
+                <span>⚡</span> <span id="btnText">START ENGINE</span>
+            </button>
+        </div>
+    </aside>
+</main>
+
+<script>
+// ===================== CLOCK =====================
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    const el = document.getElementById('clockVal');
+    if(el) el.textContent = h+':'+m+':'+s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===================== LOADER SPEEDOMETER =====================
+const ARC_LEN = 816;
+let loaderDone = false;
+
+function setNeedle(deg) {
+    document.getElementById('needle').style.transform = `rotate(${deg}deg)`;
+}
+function setArc(pct) {
+    const filled = ARC_LEN * pct;
+    document.getElementById('speedArc').setAttribute('stroke-dasharray', `${filled} ${ARC_LEN}`);
+}
+
+const statusMessages = [
+    'INITIALIZING ECU...', 'LOADING FUEL MAPS...', 'CHECKING TRACTION CONTROL...',
+    'CALIBRATING KTRC...', 'CHECKING KIBS ABS...', 'ACTIVATING KQS...', 'SYSTEM READY'
+];
+
+let currentSpeed = 0;
+let targetSpeed = 0;
+let loadPct = 0;
+let statusIdx = 0;
+const rpmDots = document.querySelectorAll('.rpm-dot');
+
+const phases = [
+    { speed: 80, pct: 0.15, duration: 400 },
+    { speed: 180, pct: 0.35, duration: 400 },
+    { speed: 260, pct: 0.6, duration: 350 },
+    { speed: 299, pct: 0.85, duration: 300 },
+    { speed: 299, pct: 1.0, duration: 400 },
+    { speed: 0, pct: 1.0, duration: 800 },
+];
+
+let phaseIdx = 0;
+let phaseStart = null;
+let prevSpeed = 0;
+
+function animLoader(ts) {
+    if(loaderDone) return;
+    if(!phaseStart) phaseStart = ts;
+    const phase = phases[phaseIdx];
+    if(!phase) { finishLoader(); return; }
+    const elapsed = ts - phaseStart;
+    const t = Math.min(elapsed / phase.duration, 1);
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+
+    const spd = Math.round(prevSpeed + (phase.speed - prevSpeed) * ease);
+    const pct = loadPct + (phase.pct - loadPct) * (t < 0.5 ? 2*t*t : -1+(4-2*t)*t);
+
+    document.getElementById('speedNum').textContent = spd;
+    document.getElementById('loadBar').style.width = (pct * 100) + '%';
+
+    // needle: -130 to +130 deg = 0 to 299 km/h
+    const needleDeg = -130 + (spd/299)*260;
+    setNeedle(needleDeg);
+    setArc(spd/299);
+
+    // RPM lights
+    const rpmFrac = spd/299;
+    const activeDots = Math.floor(rpmFrac * 12);
+    rpmDots.forEach((d, i) => {
+        d.className = 'rpm-dot';
+        if(i < activeDots) {
+            if(i < 7) d.classList.add('green');
+            else if(i < 10) d.classList.add('yellow');
+            else d.classList.add('red');
+        }
+    });
+
+    // RPM display
+    const rpm = Math.round(rpmFrac * 13500);
+    document.getElementById('rpmDisp').textContent = rpm.toLocaleString() + ' RPM';
+
+    // Status
+    const newStatusIdx = Math.floor(pct * statusMessages.length);
+    if(newStatusIdx !== statusIdx && newStatusIdx < statusMessages.length) {
+        statusIdx = newStatusIdx;
+        document.getElementById('loadStatus').textContent = statusMessages[statusIdx];
+    }
+
+    if(t >= 1) {
+        prevSpeed = phase.speed;
+        loadPct = phase.pct;
+        phaseIdx++;
+        phaseStart = null;
+    }
+
+    requestAnimationFrame(animLoader);
+}
+
+requestAnimationFrame(animLoader);
+
+function finishLoader() {
+    loaderDone = true;
+    document.getElementById('loadStatus').textContent = '✓ SYSTEM READY — KAWASAKI ZX-6R 636';
+    setTimeout(() => {
+        document.getElementById('loader').classList.add('hidden');
+    }, 1000);
+}
+
+// ===================== COLOR THEME =====================
+const colors = [
+    { hex:'#00ff41', name:'KRT GREEN' },
+    { hex:'#ff003c', name:'PASSION RED' },
+    { hex:'#00d0ff', name:'PLASMA BLUE' },
+    { hex:'#b300ff', name:'PHANTOM PURPLE' },
+    { hex:'#ffffff', name:'PEARL WHITE' },
+    { hex:'#ffae00', name:'METALLIC ORANGE' },
+];
+
+const root = document.documentElement;
+const tray = document.getElementById('colorTray');
+
+colors.forEach((c, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (i===0?' active':'');
+    dot.style.backgroundColor = c.hex;
+    dot.title = c.name;
+    dot.onclick = () => setTheme(c, dot);
+    tray.appendChild(dot);
+});
+
+function setTheme(c, el) {
+    root.style.setProperty('--primary', c.hex);
+    root.style.setProperty('--primary-dim', c.hex + '2e');
+    root.style.setProperty('--primary-glow', `0 0 18px ${c.hex}, 0 0 40px ${c.hex}80`);
+    root.style.setProperty('--border-green', `1px solid ${c.hex}60`);
+    document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('colorName').textContent = c.name;
+    // pulse glow
+    const glow = document.getElementById('ambientGlow');
+    glow.style.background = `radial-gradient(circle, ${c.hex}20 0%, transparent 70%)`;
+}
+
+// ===================== TABS =====================
+function openTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(btn) btn.classList.add('active');
+}
+
+// ===================== ENGINE TOGGLE =====================
+let engineOn = false;
+let engineInterval = null;
+let gearSim = 0;
+const gears = ['N','1','2','3','4','5','6'];
+
+function toggleEngine() {
+    const btn = document.getElementById('btnStart');
+    const btnText = document.getElementById('btnText');
+    const body = document.body;
+    const light = document.getElementById('engLight');
+    const engStatus = document.getElementById('engStatusText');
+    const audio = document.getElementById('engineSound');
+
+    engineOn = !engineOn;
+
+    if(engineOn) {
+        btnText.textContent = 'STOP ENGINE';
+        btn.classList.add('running');
+        body.classList.add('engine-on');
+        light.classList.add('on');
+        engStatus.textContent = 'ENGINE RUNNING';
+        document.getElementById('livePower').textContent = 'ON';
+        document.getElementById('liveTemp').textContent = '85°C';
+        audio.currentTime = 0;
+        audio.play().catch(()=>{});
+        gearSim = 0;
+        engineInterval = setInterval(() => {
+            // simulate gear changing
+            gearSim = (gearSim + 1) % gears.length;
+            document.getElementById('liveGear').textContent = gears[gearSim];
+            const temps = [85, 88, 90, 92, 89, 87, 91];
+            document.getElementById('liveTemp').textContent = temps[Math.floor(Math.random()*temps.length)] + '°C';
+        }, 2000);
+    } else {
+        btnText.textContent = 'START ENGINE';
+        btn.classList.remove('running');
+        body.classList.remove('engine-on');
+        light.classList.remove('on');
+        engStatus.textContent = 'ENGINE OFFLINE';
+        document.getElementById('livePower').textContent = 'OFF';
+        document.getElementById('liveTemp').textContent = '--°C';
+        document.getElementById('liveGear').textContent = 'N';
+        audio.pause(); audio.currentTime = 0;
+        clearInterval(engineInterval);
+    }
+}
+
+// ===================== PARALLAX =====================
+document.addEventListener('mousemove', e => {
+    if(window.innerWidth > 900) {
+        const x = (window.innerWidth/2 - e.pageX) / 50;
+        const y = (window.innerHeight/2 - e.pageY) / 50;
+        document.getElementById('bike').style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+    }
+});
+</script>
+</body>
+</html>
