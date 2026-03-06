@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>STORM ZX-6R | จัดการน้ำมัน</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary:#00ff41; --primary-dim:rgba(0,255,65,0.15); --primary-glow:rgba(0,255,65,0.45);
+            --bg-base:#020704; --bg-grad1:#0a1a0e; --bg-grad2:#000000;
+            --grid-color:rgba(0,255,65,0.03); --glow-color:rgba(0,255,65,0.07);
+            --sidebar-bg:rgba(4,8,6,0.98); --panel-bg:rgba(8,14,10,0.92); --card-bg:rgba(12,20,14,0.9);
+            --border-color:rgba(255,255,255,0.07); --accent:#ffffff;
+            --text-main:#dce8de; --text-muted:#4a6050; --text-dim:#6a8070;
+            --danger:#ff2d55; --danger-dim:rgba(255,45,85,0.15);
+            --warning:#ffd60a; --warning-dim:rgba(255,214,10,0.15);
+            --info:#0af5ff; --info-dim:rgba(10,245,255,0.12);
+            --purple:#bf5fff; --purple-dim:rgba(191,95,255,0.15);
+            --ease:cubic-bezier(0.215,0.61,0.355,1);
+            --row-even:rgba(0,255,65,0.025); --row-odd:rgba(0,0,0,0.25);
+            --scanline: rgba(0,255,65,0.015);
+        }
+        [data-theme="blue"]{--primary:#00b4ff;--primary-dim:rgba(0,180,255,0.15);--primary-glow:rgba(0,180,255,0.45);--bg-base:#020508;--bg-grad1:#0a0f1e;--bg-grad2:#000005;--grid-color:rgba(0,180,255,0.028);--glow-color:rgba(0,180,255,0.07);--sidebar-bg:rgba(3,6,14,0.98);--panel-bg:rgba(7,11,22,0.92);--card-bg:rgba(10,16,30,0.9);--text-main:#d0e4f0;--text-muted:#3a5580;--text-dim:#5a78a0;--row-even:rgba(0,180,255,0.025);--row-odd:rgba(0,0,0,0.25);}
+        [data-theme="orange"]{--primary:#ff6b00;--primary-dim:rgba(255,107,0,0.15);--primary-glow:rgba(255,107,0,0.45);--bg-base:#080400;--bg-grad1:#1a0c00;--bg-grad2:#050200;--grid-color:rgba(255,107,0,0.028);--glow-color:rgba(255,107,0,0.07);--sidebar-bg:rgba(12,6,0,0.98);--panel-bg:rgba(18,10,3,0.92);--card-bg:rgba(24,14,4,0.9);--text-main:#f0e0cc;--text-muted:#7a5030;--text-dim:#a07050;--row-even:rgba(255,107,0,0.025);--row-odd:rgba(0,0,0,0.25);}
+        [data-theme="purple"]{--primary:#c77dff;--primary-dim:rgba(199,125,255,0.15);--primary-glow:rgba(199,125,255,0.45);--bg-base:#050208;--bg-grad1:#10061e;--bg-grad2:#020005;--grid-color:rgba(199,125,255,0.028);--glow-color:rgba(199,125,255,0.07);--sidebar-bg:rgba(8,4,14,0.98);--panel-bg:rgba(12,6,22,0.92);--card-bg:rgba(18,10,28,0.9);--text-main:#e8d8f8;--text-muted:#5a3a78;--text-dim:#8060a8;--row-even:rgba(199,125,255,0.025);--row-odd:rgba(0,0,0,0.25);}
+        [data-theme="mono"]{--primary:#c8d8e8;--primary-dim:rgba(200,216,232,0.15);--primary-glow:rgba(200,216,232,0.4);--bg-base:#040407;--bg-grad1:#0d0e16;--bg-grad2:#020204;--grid-color:rgba(200,216,232,0.025);--glow-color:rgba(200,216,232,0.05);--sidebar-bg:rgba(6,6,10,0.98);--panel-bg:rgba(10,10,18,0.92);--card-bg:rgba(14,14,22,0.9);--text-main:#c8d8e8;--text-muted:#404858;--text-dim:#607080;--row-even:rgba(200,216,232,0.025);--row-odd:rgba(0,0,0,0.25);}
+
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        html{scroll-behavior:smooth;}
+        body{font-family:'Rajdhani',sans-serif;background-color:var(--bg-base);color:var(--text-main);height:100vh;overflow:hidden;display:flex;flex-direction:row;cursor:default;}
+
+        /* ── NOISE TEXTURE OVERLAY ── */
+        body::before{
+            content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            opacity:0.35;mix-blend-mode:overlay;
+        }
+
+        /* ── SCANLINE EFFECT ── */
+        body::after{
+            content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+            background:repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scanline) 2px,var(--scanline) 4px);
+            animation:scanMove 12s linear infinite;
+        }
+        @keyframes scanMove{from{background-position:0 0}to{background-position:0 100px}}
+
+        /* BG */
+        .bg-wrap{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at 65% 40%,var(--bg-grad1) 0%,var(--bg-grad2) 70%);}
+
+        /* PERSPECTIVE GRID */
+        .grid-floor{
+            position:absolute;bottom:-20%;left:-50%;width:200%;height:100%;
+            background-image:linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px);
+            background-size:60px 60px;
+            transform:perspective(900px) rotateX(72deg);
+            animation:floorScroll 20s linear infinite;
+            mask-image:linear-gradient(to top,black 15%,transparent 75%);
+        }
+        .ambient-glow{position:absolute;top:40%;left:60%;width:1100px;height:1100px;background:radial-gradient(circle,var(--glow-color) 0%,transparent 65%);transform:translate(-50%,-50%);filter:blur(110px);animation:ambientPulse 8s ease-in-out infinite;}
+        .ambient-glow2{position:absolute;top:60%;left:30%;width:600px;height:600px;background:radial-gradient(circle,rgba(255,214,10,0.03) 0%,transparent 65%);transform:translate(-50%,-50%);filter:blur(80px);animation:ambientPulse 11s ease-in-out infinite reverse;}
+        @keyframes floorScroll{from{background-position:0 0}to{background-position:0 800px}}
+        @keyframes ambientPulse{0%,100%{opacity:0.7;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+
+        /* ── CURSOR GLOW ── */
+        .cursor-glow{position:fixed;width:300px;height:300px;border-radius:50%;pointer-events:none;z-index:2;background:radial-gradient(circle,rgba(0,255,65,0.04) 0%,transparent 60%);transform:translate(-50%,-50%);transition:left 0.08s,top 0.08s;filter:blur(20px);}
+
+        /* ── CLICK RIPPLE ── */
+        .ripple{position:fixed;border-radius:50%;border:2px solid var(--primary);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:rippleOut 0.6s ease-out forwards;}
+        @keyframes rippleOut{0%{transform:translate(-50%,-50%) scale(0);opacity:0.9;}100%{transform:translate(-50%,-50%) scale(4);opacity:0;}}
+
+        /* SIDEBAR */
+        .sidebar{
+            width:72px;height:100vh;
+            background:var(--sidebar-bg);
+            backdrop-filter:blur(28px);
+            border-right:1px solid rgba(255,255,255,0.05);
+            display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+            padding:28px 0;z-index:200;flex-shrink:0;
+            transition:width 0.42s var(--ease);
+            box-shadow:4px 0 40px rgba(0,0,0,0.6);
+        }
+        .sidebar:hover{width:210px;}
+
+        /* Sidebar top accent line */
+        .sidebar::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,transparent,var(--primary-dim),transparent);z-index:1;}
+
+        .brand-icon{
+            font-family:'Orbitron';font-weight:900;font-size:1.2rem;
+            color:var(--primary);text-shadow:0 0 20px var(--primary),0 0 40px var(--primary-dim);
+            writing-mode:vertical-rl;transform:rotate(180deg);
+            transition:all 0.42s var(--ease);letter-spacing:4px;
+            position:relative;
+        }
+        .brand-icon::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:30px;height:1px;background:var(--primary);box-shadow:0 0 6px var(--primary);}
+        .sidebar:hover .brand-icon{writing-mode:horizontal-tb;transform:none;letter-spacing:5px;}
+        .sidebar:hover .brand-icon::after{width:60%;}
+
+        .nav-menu{width:100%;display:flex;flex-direction:column;gap:4px;padding:0 8px;}
+        .nav-item{
+            display:flex;align-items:center;padding:14px 18px;
+            color:var(--text-muted);text-decoration:none;
+            position:relative;transition:all 0.3s;overflow:hidden;white-space:nowrap;border-radius:8px;
+        }
+        .nav-item::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--primary-dim),transparent);opacity:0;transition:opacity 0.3s;border-radius:8px;}
+        .nav-item:hover,.nav-item.active{color:var(--accent);}
+        .nav-item.active{color:var(--primary);}
+        .nav-item:hover::after,.nav-item.active::after{opacity:1;}
+        .nav-item::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:2.5px;background:var(--primary);border-radius:2px;transform:scaleY(0);transition:0.3s var(--ease);box-shadow:0 0 10px var(--primary);z-index:1;}
+        .nav-item:hover::before,.nav-item.active::before{transform:scaleY(1);}
+        .nav-icon{font-size:1.15rem;min-width:22px;text-align:center;margin-right:14px;position:relative;z-index:1;transition:transform 0.3s var(--ease);}
+        .nav-item:hover .nav-icon{transform:scale(1.2);}
+        .nav-text{font-family:'Orbitron';font-size:0.72rem;letter-spacing:1.5px;opacity:0;transition:0.35s;position:relative;z-index:1;}
+        .sidebar:hover .nav-text{opacity:1;}
+
+        /* MAIN */
+        .main-stage{flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;overflow-x:hidden;position:relative;z-index:3;}
+        .main-stage::-webkit-scrollbar{width:3px;}
+        .main-stage::-webkit-scrollbar-thumb{background:var(--primary-dim);border-radius:2px;}
+
+        /* TOPBAR */
+        .top-bar{display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;position:relative;}
+        .top-bar::after{content:'';position:absolute;bottom:-1px;left:0;width:120px;height:1px;background:linear-gradient(90deg,var(--primary),transparent);box-shadow:0 0 8px var(--primary);}
+        .model-header{line-height:1;}
+        .model-header .sub{color:var(--primary);font-size:0.68rem;letter-spacing:8px;font-family:'Orbitron';display:block;margin-bottom:5px;opacity:0.8;}
+        .model-header h1{font-family:'Orbitron';font-size:2.6rem;font-weight:900;letter-spacing:-2px;color:#fff;text-shadow:0 0 30px rgba(255,255,255,0.15);}
+        .model-header h1 span{color:var(--primary);text-shadow:0 0 20px var(--primary),0 0 40px var(--primary-dim);}
+        .top-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+
+        /* THEME SWITCHER */
+        .theme-switcher{display:flex;gap:7px;align-items:center;padding:6px 10px;background:rgba(0,0,0,0.3);border-radius:20px;border:1px solid rgba(255,255,255,0.06);}
+        .theme-dot{width:16px;height:16px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.3s var(--ease);position:relative;}
+        .theme-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid transparent;transition:all 0.3s;}
+        .theme-dot:hover{transform:scale(1.3);}
+        .theme-dot.active{transform:scale(1.2);}
+        .theme-dot.active::after{border-color:rgba(255,255,255,0.6);}
+        .theme-dot[data-t="green"]{background:#00ff41;}
+        .theme-dot[data-t="blue"]{background:#00b4ff;}
+        .theme-dot[data-t="orange"]{background:#ff6b00;}
+        .theme-dot[data-t="purple"]{background:#c77dff;}
+        .theme-dot[data-t="mono"]{background:linear-gradient(135deg,#888,#ddd);}
+
+        /* VIEW TOGGLE */
+        .view-toggle{display:flex;gap:5px;background:rgba(0,0,0,0.4);padding:5px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);}
+        .toggle-btn{
+            background:transparent;border:none;
+            color:var(--text-muted);padding:9px 18px;
+            font-family:'Orbitron';font-size:0.7rem;letter-spacing:1.5px;
+            cursor:pointer;transition:all 0.3s var(--ease);border-radius:7px;
+            display:flex;align-items:center;gap:7px;position:relative;overflow:hidden;
+        }
+        .toggle-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--primary-dim),transparent);opacity:0;transition:opacity 0.3s;border-radius:7px;}
+        .toggle-btn:hover{color:var(--accent);}
+        .toggle-btn:hover::before{opacity:1;}
+        .toggle-btn.active{color:var(--primary);background:rgba(0,0,0,0.5);box-shadow:0 0 15px var(--primary-dim),inset 0 0 10px rgba(0,0,0,0.5);}
+        .toggle-btn.active::before{opacity:1;}
+        .rider-profile{display:flex;align-items:center;gap:10px;}
+        .rider-info{text-align:right;}
+        .rider-info .label{font-size:0.58rem;color:var(--text-muted);letter-spacing:2px;display:block;font-family:'Orbitron';}
+        .rider-info .name{font-family:'Share Tech Mono';font-size:1rem;color:var(--primary);text-shadow:0 0 10px var(--primary-dim);}
+        .rider-avatar{width:38px;height:38px;border-radius:8px;background:var(--primary-dim);border:1px solid var(--primary-dim);display:flex;justify-content:center;align-items:center;font-size:1.1rem;transition:all 0.3s;box-shadow:0 0 15px var(--primary-dim);}
+        .rider-avatar:hover{transform:scale(1.1);box-shadow:0 0 25px var(--primary-glow);}
+
+        /* VIEWS */
+        .view{display:none;flex-direction:column;gap:18px;}
+        .view.active{display:flex;animation:viewReveal 0.5s var(--ease);}
+        @keyframes viewReveal{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+        /* PANEL */
+        .panel{
+            background:var(--panel-bg);
+            border:1px solid var(--border-color);
+            border-radius:12px;padding:22px;
+            backdrop-filter:blur(18px);
+            position:relative;overflow:hidden;
+            transition:border-color 0.3s, box-shadow 0.3s;
+        }
+        .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary-dim),transparent);transition:opacity 0.3s;}
+        .panel::after{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--primary-dim),transparent 60%);}
+        .panel:hover{border-color:rgba(255,255,255,0.1);box-shadow:0 8px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(0,255,65,0.03);}
+        .panel-title{font-family:'Orbitron';font-size:0.88rem;color:var(--primary);margin-bottom:20px;letter-spacing:2px;display:flex;align-items:center;gap:10px;text-shadow:0 0 12px var(--primary-dim);}
+        .panel-title::before{content:'';width:3px;height:18px;background:linear-gradient(to bottom,var(--primary),var(--primary-dim));border-radius:2px;box-shadow:0 0 10px var(--primary);flex-shrink:0;}
+
+        /* LOG GRID */
+        .log-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;}
+
+        /* FORM STEPS */
+        .form-steps{display:flex;flex-direction:column;}
+        .step-item{display:flex;gap:14px;position:relative;}
+        .step-item:not(:last-child)::after{content:'';position:absolute;left:14px;top:40px;bottom:-10px;width:1px;background:linear-gradient(to bottom,var(--primary-dim),transparent);z-index:0;}
+        .step-connector{flex-shrink:0;padding-top:10px;}
+        .step-dot{
+            width:28px;height:28px;border-radius:50%;
+            background:var(--bg-base);border:1.5px solid rgba(255,255,255,0.08);
+            display:flex;align-items:center;justify-content:center;
+            font-size:0.7rem;color:var(--text-muted);
+            font-family:'Orbitron';font-weight:700;
+            transition:all 0.4s var(--ease);z-index:1;position:relative;
+        }
+        .step-dot.filled{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);box-shadow:0 0 14px var(--primary-dim),0 0 28px rgba(0,0,0,0.5);font-size:0;}
+        .step-dot.filled::after{content:'✓';font-size:0.7rem;}
+        @keyframes stepPulse{
+            0%,100%{box-shadow:0 0 0 0 var(--primary-glow)}
+            50%{box-shadow:0 0 0 8px transparent}
+        }
+        @keyframes stepGlow{
+            0%,100%{box-shadow:0 0 8px var(--primary-dim),0 0 0 0 var(--primary-glow)}
+            50%{box-shadow:0 0 16px var(--primary),0 0 0 6px transparent}
+        }
+        .step-dot.active{border-color:var(--primary);color:var(--primary);animation:stepGlow 1.6s ease infinite;}
+        .step-content{flex:1;padding-bottom:18px;}
+
+        .form-label{display:block;font-size:0.65rem;color:var(--text-muted);margin-bottom:7px;font-family:'Orbitron';letter-spacing:1.2px;text-transform:uppercase;}
+        .form-input{
+            width:100%;background:rgba(0,0,0,0.5);
+            border:1px solid rgba(255,255,255,0.08);
+            color:var(--accent);padding:11px 14px;
+            font-family:'Share Tech Mono';font-size:0.92rem;
+            border-radius:7px;transition:all 0.3s var(--ease);
+        }
+        .form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim),0 4px 20px rgba(0,0,0,0.4);background:rgba(0,0,0,0.65);}
+        input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) saturate(5) hue-rotate(90deg);cursor:pointer;opacity:0.6;}
+
+        .station-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;}
+        .station-btn{
+            background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);
+            color:var(--text-dim);padding:9px 10px;
+            font-family:'Rajdhani';font-size:0.9rem;font-weight:600;
+            cursor:pointer;transition:all 0.25s var(--ease);border-radius:7px;
+            display:flex;align-items:center;gap:7px;position:relative;overflow:hidden;
+        }
+        .station-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.04),transparent);opacity:0;transition:opacity 0.25s;}
+        .station-btn:hover{border-color:rgba(255,255,255,0.2);color:var(--accent);transform:translateY(-1px);}
+        .station-btn:hover::after{opacity:1;}
+        .station-btn.selected{background:var(--primary-dim);border-color:var(--primary);color:var(--primary);box-shadow:0 0 14px var(--primary-dim),0 2px 8px rgba(0,0,0,0.4);}
+
+        .fuel-grid{display:flex;flex-direction:column;gap:5px;}
+        .fuel-btn{
+            background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.07);
+            color:var(--text-dim);padding:9px 12px;
+            font-family:'Rajdhani';font-size:0.92rem;font-weight:600;
+            cursor:pointer;transition:all 0.25s var(--ease);border-radius:7px;
+            display:flex;align-items:center;gap:10px;width:100%;text-align:left;position:relative;overflow:hidden;
+        }
+        .fuel-btn::after{content:'';position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.04);opacity:0;transition:all 0.3s;}
+        .fuel-btn:hover{border-color:rgba(255,255,255,0.16);color:var(--accent);transform:translateX(3px);}
+        .fuel-btn:hover::after{opacity:1;right:8px;}
+        .fuel-btn.selected{border-color:var(--warning);color:var(--warning);background:var(--warning-dim);box-shadow:0 0 12px rgba(255,214,10,0.15);}
+        .fuel-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+
+        .locked-msg{font-family:'Share Tech Mono';font-size:0.72rem;color:var(--text-muted);text-align:center;padding:12px;border:1px dashed rgba(255,255,255,0.06);border-radius:7px;align-items:center;justify-content:center;gap:7px;}
+
+        .input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .input-with-unit{position:relative;}
+        .input-unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'Orbitron';font-size:0.62rem;color:var(--text-muted);pointer-events:none;}
+        .input-with-unit .form-input{padding-right:40px;}
+
+        .btn-row{display:flex;gap:8px;margin-top:16px;}
+        .btn{
+            flex:1;background:transparent;border:1px solid var(--primary);color:var(--primary);
+            padding:13px 12px;font-family:'Orbitron';font-weight:700;letter-spacing:1.5px;
+            cursor:pointer;transition:all 0.3s var(--ease);
+            display:flex;justify-content:center;align-items:center;gap:8px;
+            border-radius:8px;font-size:0.78rem;text-transform:uppercase;
+            position:relative;overflow:hidden;
+        }
+        .btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--primary),transparent 60%);opacity:0;transition:opacity 0.3s;}
+        .btn::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--primary);transform:scaleX(0);transition:transform 0.3s var(--ease);box-shadow:0 0 8px var(--primary);}
+        .btn:hover{background:var(--primary);color:#000;box-shadow:0 0 30px var(--primary-glow),0 6px 20px rgba(0,0,0,0.5);transform:translateY(-2px);}
+        .btn:hover::before{opacity:0.2;}
+        .btn:hover::after{transform:scaleX(1);}
+        .btn:active{transform:translateY(0);box-shadow:0 0 15px var(--primary-dim);}
+
+        .btn-cancel{flex:0 0 auto;border-color:var(--warning);color:var(--warning);display:none;padding:13px 16px;}
+        .btn-cancel::before{background:linear-gradient(135deg,var(--warning),transparent 60%);}
+        .btn-cancel::after{background:var(--warning);box-shadow:0 0 8px var(--warning);}
+        .btn-cancel:hover{background:var(--warning);color:#000;box-shadow:0 0 25px rgba(255,214,10,0.5);}
+
+        .form-textarea{
+            width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);
+            color:var(--accent);padding:11px 14px;font-family:'Share Tech Mono';font-size:0.88rem;
+            border-radius:7px;transition:all 0.3s var(--ease);resize:none;height:72px;
+        }
+        .form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-dim);background:rgba(0,0,0,0.65);}
+
+        /* TABLE */
+        .table-wrapper{overflow-x:auto;border-radius:9px;border:1px solid rgba(255,255,255,0.05);}
+        .table-wrapper::-webkit-scrollbar{height:3px;}
+        .table-wrapper::-webkit-scrollbar-thumb{background:var(--primary-dim);border-radius:2px;}
+        .data-table{width:100%;border-collapse:collapse;text-align:left;}
+        .data-table thead tr{background:rgba(0,0,0,0.5);}
+        .data-table th{font-family:'Orbitron';color:var(--primary);padding:13px 15px;border-bottom:1px solid var(--primary-dim);font-size:0.6rem;letter-spacing:1.2px;white-space:nowrap;position:sticky;top:0;background:rgba(4,8,6,0.95);backdrop-filter:blur(12px);z-index:10;text-shadow:0 0 8px var(--primary-dim);}
+        .data-table tbody tr{transition:all 0.2s;}
+        .data-table tbody tr:nth-child(odd) td{background:var(--row-odd);}
+        .data-table tbody tr:nth-child(even) td{background:var(--row-even);}
+        .data-table td{padding:12px 15px;border-bottom:1px solid rgba(255,255,255,0.03);font-family:'Share Tech Mono';color:var(--text-main);font-size:0.82rem;vertical-align:middle;transition:all 0.2s;}
+        .data-table tbody tr:hover td{background:rgba(255,255,255,0.05) !important;transform:scale(1.002);}
+        .data-table tr:last-child td{border-bottom:none;}
+        .note-cell{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:0.76rem;}
+        .td-num{text-align:right;font-variant-numeric:tabular-nums;}
+        .td-cost{color:var(--warning);font-weight:700;text-shadow:0 0 8px rgba(255,214,10,0.3);}
+        .td-ppl{color:var(--info);}
+        .fuel-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-family:'Orbitron';font-size:0.58rem;font-weight:700;letter-spacing:0.8px;white-space:nowrap;}
+        .action-btn{background:none;border:none;cursor:pointer;font-family:'Orbitron';font-size:0.6rem;padding:5px 9px;margin-right:3px;border-radius:4px;transition:all 0.25s;white-space:nowrap;}
+        .edit-btn{color:var(--warning);border:1px solid rgba(255,214,10,0.25);}
+        .edit-btn:hover{background:var(--warning);color:#000;box-shadow:0 0 12px rgba(255,214,10,0.4);}
+        .delete-btn{color:var(--danger);border:1px solid rgba(255,45,85,0.25);}
+        .delete-btn:hover{background:var(--danger);color:#fff;box-shadow:0 0 12px rgba(255,45,85,0.4);}
+
+        /* INLINE EDIT */
+        .edit-row td{padding:8px 10px !important;background:rgba(0,0,0,0.7) !important;border-top:1px solid var(--primary-dim) !important;border-bottom:1px solid var(--primary-dim) !important;}
+        .inline-input{background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.1);color:var(--accent);padding:6px 9px;font-family:'Share Tech Mono';font-size:0.8rem;border-radius:5px;width:100%;min-width:60px;transition:all 0.25s;}
+        .inline-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-dim);}
+        .inline-save-btn{background:var(--primary-dim);border:1px solid var(--primary);color:var(--primary);padding:6px 11px;font-family:'Orbitron';font-size:0.58rem;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all 0.25s;}
+        .inline-save-btn:hover{background:var(--primary);color:#000;}
+        .inline-cancel-btn{background:rgba(255,45,85,0.1);border:1px solid rgba(255,45,85,0.35);color:var(--danger);padding:6px 9px;font-family:'Orbitron';font-size:0.58rem;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all 0.25s;margin-left:5px;}
+        .inline-cancel-btn:hover{background:var(--danger);color:#fff;}
+        .inline-select{background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.1);color:var(--accent);padding:6px 9px;font-family:'Share Tech Mono';font-size:0.8rem;border-radius:5px;width:100%;}
+        .inline-select:focus{outline:none;border-color:var(--primary);}
+
+        .empty-state{text-align:center;padding:52px 20px;color:var(--text-muted);}
+        .empty-state .icon{font-size:3rem;margin-bottom:12px;opacity:0.3;display:block;animation:float 4s ease-in-out infinite;}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        .empty-state p{font-family:'Orbitron';font-size:0.75rem;letter-spacing:1.5px;}
+
+        /* STATS KPI */
+        .stats-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+        .stat-card{
+            background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;
+            padding:18px;position:relative;overflow:hidden;
+            transition:all 0.35s var(--ease);cursor:default;
+        }
+        .stat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.5);}
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+        .stat-card::after{content:'';position:absolute;bottom:0;right:0;width:80px;height:80px;border-radius:50%;opacity:0.07;filter:blur(20px);transition:all 0.35s;}
+        .stat-card:hover::after{opacity:0.15;}
+        .stat-card.c-green::before{background:linear-gradient(90deg,transparent,var(--primary),transparent);}
+        .stat-card.c-green::after{background:var(--primary);}
+        .stat-card.c-blue::before{background:linear-gradient(90deg,transparent,var(--info),transparent);}
+        .stat-card.c-blue::after{background:var(--info);}
+        .stat-card.c-yellow::before{background:linear-gradient(90deg,transparent,var(--warning),transparent);}
+        .stat-card.c-yellow::after{background:var(--warning);}
+        .stat-card.c-red::before{background:linear-gradient(90deg,transparent,var(--danger),transparent);}
+        .stat-card.c-red::after{background:var(--danger);}
+        .stat-card.c-purple::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
+        .stat-card.c-purple::after{background:var(--purple);}
+        .stat-icon{font-size:1.6rem;margin-bottom:10px;display:block;filter:drop-shadow(0 0 6px rgba(255,255,255,0.1));}
+        .stat-label{font-family:'Orbitron';font-size:0.58rem;color:var(--text-muted);letter-spacing:1px;margin-bottom:6px;}
+        .stat-val{font-family:'Share Tech Mono';font-size:1.5rem;font-weight:700;line-height:1;}
+        .stat-val.c-green{color:var(--primary);text-shadow:0 0 12px var(--primary-dim);}
+        .stat-val.c-blue{color:var(--info);text-shadow:0 0 12px var(--info-dim);}
+        .stat-val.c-yellow{color:var(--warning);text-shadow:0 0 12px var(--warning-dim);}
+        .stat-val.c-red{color:var(--danger);text-shadow:0 0 12px var(--danger-dim);}
+        .stat-val.c-purple{color:var(--purple);text-shadow:0 0 12px var(--purple-dim);}
+        .stat-unit{font-family:'Orbitron';font-size:0.58rem;color:var(--text-muted);margin-top:3px;}
+
+        /* CHARTS */
+        .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+        .chart-wrap{position:relative;height:240px;width:100%;}
+        .chart-wrap-sm{position:relative;height:200px;width:100%;}
+
+        .chart-toggle-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center;}
+        .chart-toggle-bar .ctb-label{font-family:'Orbitron';font-size:0.62rem;color:var(--text-muted);letter-spacing:1.5px;margin-right:4px;}
+        .chart-pill{
+            background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.08);
+            color:var(--text-muted);padding:5px 13px;
+            font-family:'Orbitron';font-size:0.62rem;letter-spacing:0.8px;
+            border-radius:20px;cursor:pointer;transition:all 0.25s var(--ease);
+            display:flex;align-items:center;gap:7px;
+        }
+        .chart-pill .pill-dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:0.45;transition:all 0.25s;}
+        .chart-pill.active{border-color:var(--primary);color:var(--primary);}
+        .chart-pill.active .pill-dot{opacity:1;box-shadow:0 0 6px currentColor;}
+        .chart-pill:hover{border-color:rgba(255,255,255,0.2);color:var(--text-main);}
+        .chart-block{transition:all 0.35s var(--ease);overflow:hidden;}
+        .chart-block.hidden{display:none;}
+
+        /* ══════════════════════════════════════════
+           SPECTACULAR POPUP — HYPER ZX-6R EDITION
+        ══════════════════════════════════════════ */
+        .popup-overlay{
+            position:fixed;inset:0;z-index:9999;
+            background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);
+            display:flex;align-items:center;justify-content:center;
+            opacity:0;pointer-events:none;transition:opacity 0.45s ease;
+        }
+        .popup-overlay.show{opacity:1;pointer-events:all;}
+
+        .popup-box{
+            width:min(500px,94vw);
+            background:linear-gradient(165deg,rgba(2,8,4,0.99),rgba(1,3,2,0.99));
+            border:1px solid rgba(0,255,65,0.22);
+            border-radius:16px;overflow:hidden;position:relative;
+            transform:scale(0.5) translateY(80px) rotateX(20deg);
+            transition:transform 0.55s cubic-bezier(0.34,1.56,0.64,1),opacity 0.45s ease;
+            box-shadow:
+                0 0 0 1px rgba(0,255,65,0.06),
+                0 0 80px rgba(0,255,65,0.15),
+                0 0 160px rgba(0,255,65,0.06),
+                0 40px 80px rgba(0,0,0,0.95);
+        }
+        .popup-overlay.show .popup-box{transform:scale(1) translateY(0) rotateX(0deg);}
+
+        /* Racing top stripe animated */
+        .popup-racing-top{height:5px;position:relative;overflow:hidden;background:#000;}
+        .popup-racing-top::before{
+            content:'';position:absolute;inset:0;
+            background:repeating-linear-gradient(90deg,var(--primary) 0%,var(--primary) 35%,transparent 35%,transparent 45%,#ffd60a 45%,#ffd60a 55%,transparent 55%,transparent 65%);
+            background-size:100px 100%;animation:racingStripe 0.9s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes racingStripe{from{transform:translateX(-100%)}to{transform:translateX(0%)}}
+
+        /* Side accent lines */
+        .popup-side-l,.popup-side-r{position:absolute;top:5px;bottom:0;width:2px;z-index:2;}
+        .popup-side-l{left:0;background:linear-gradient(to bottom,var(--primary),rgba(0,255,65,0.2) 50%,transparent);}
+        .popup-side-r{right:0;background:linear-gradient(to bottom,#ffd60a,rgba(255,214,10,0.15) 50%,transparent);}
+
+        /* Corner decorations */
+        .popup-corner{position:absolute;width:24px;height:24px;z-index:3;}
+        .popup-corner-tl{top:5px;left:2px;border-top:1.5px solid var(--primary);border-left:1.5px solid var(--primary);}
+        .popup-corner-tr{top:5px;right:2px;border-top:1.5px solid #ffd60a;border-right:1.5px solid #ffd60a;}
+        .popup-corner-bl{bottom:2px;left:2px;border-bottom:1.5px solid rgba(0,255,65,0.4);border-left:1.5px solid rgba(0,255,65,0.4);}
+        .popup-corner-br{bottom:2px;right:2px;border-bottom:1.5px solid rgba(255,214,10,0.3);border-right:1.5px solid rgba(255,214,10,0.3);}
+
+        /* Scan line inside popup */
+        .popup-scan{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,transparent,rgba(0,255,65,0.6),transparent);z-index:4;animation:popupScan 3s linear infinite;opacity:0.5;}
+        @keyframes popupScan{0%{top:5px;opacity:0}5%{opacity:0.6}95%{opacity:0.3}100%{top:100%;opacity:0}}
+
+        /* Particle canvas */
+        .popup-canvas{position:absolute;inset:0;pointer-events:none;z-index:1;}
+
+        .popup-body{padding:26px 28px 24px;text-align:center;position:relative;z-index:3;}
+
+        /* Bike stage */
+        .popup-bike-stage{position:relative;height:115px;margin-bottom:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .popup-road{position:absolute;bottom:0;left:0;right:0;height:18px;background:linear-gradient(90deg,transparent,rgba(0,255,65,0.07) 40%,rgba(0,255,65,0.14) 50%,rgba(0,255,65,0.07) 60%,transparent);border-top:1px solid rgba(0,255,65,0.18);}
+        .popup-road::before{content:'';position:absolute;bottom:8px;left:0;right:0;height:1px;background:repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,214,10,0.35) 28px,rgba(255,214,10,0.35) 48px);animation:roadMove 0.55s linear infinite;}
+        .popup-road::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,65,0.3),transparent);}
+        @keyframes roadMove{from{background-position:0 0}to{background-position:-48px 0}}
+
+        .popup-speed-lines{position:absolute;left:0;top:50%;transform:translateY(-50%);width:50%;height:100%;overflow:hidden;pointer-events:none;}
+        .speed-line{position:absolute;height:1px;left:0;background:linear-gradient(90deg,transparent,var(--primary));animation:speedLine 0.4s linear infinite;opacity:0;}
+        .speed-line:nth-child(1){top:30%;width:40%;animation-delay:0s;animation-duration:0.38s;}
+        .speed-line:nth-child(2){top:45%;width:60%;animation-delay:0.13s;animation-duration:0.42s;}
+        .speed-line:nth-child(3){top:60%;width:30%;animation-delay:0.25s;animation-duration:0.35s;}
+        .speed-line:nth-child(4){top:25%;width:50%;animation-delay:0.08s;animation-duration:0.46s;}
+        .speed-line:nth-child(5){top:70%;width:45%;animation-delay:0.33s;animation-duration:0.4s;}
+        @keyframes speedLine{0%{transform:translateX(-100%);opacity:0}20%{opacity:0.6}80%{opacity:0.4}100%{transform:translateX(200%);opacity:0}}
+
+        .popup-zx6r-wrap{position:relative;display:inline-block;animation:bikeReveal 0.75s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
+        @keyframes bikeReveal{0%{transform:translateX(-150px) scale(0.65);opacity:0;}60%{opacity:1;}100%{transform:translateX(0) scale(1);opacity:1;}}
+
+        .zx6r-svg{width:210px;height:95px;filter:drop-shadow(0 0 16px rgba(0,255,65,0.8)) drop-shadow(0 0 32px rgba(0,255,65,0.3)) drop-shadow(0 4px 12px rgba(0,0,0,0.8));}
+
+        .popup-exhaust{position:absolute;left:-22px;top:52%;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px;}
+        .exhaust-flame{width:16px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,#ff6b00,#ffd60a);animation:exhaustPulse 0.22s ease-in-out infinite alternate;transform-origin:right;}
+        .exhaust-flame:nth-child(2){width:11px;animation-delay:0.08s;}
+        .exhaust-flame:nth-child(3){width:7px;animation-delay:0.16s;}
+        @keyframes exhaustPulse{from{opacity:0.4;transform:scaleX(0.5)}to{opacity:1;transform:scaleX(1)}}
+
+        /* RPM gauge */
+        .popup-rpm-wrap{margin:0 auto 16px;width:110px;height:55px;position:relative;overflow:hidden;}
+        .popup-rpm-bg{position:absolute;inset:0;border-radius:110px 110px 0 0;background:conic-gradient(from 180deg at 50% 100%,#ff2d55 0deg,#ffd60a 50deg,#00ff41 110deg,transparent 110deg);opacity:0.2;}
+        .popup-rpm-ticks{position:absolute;inset:0;border-radius:110px 110px 0 0;overflow:hidden;}
+        .popup-rpm-needle{position:absolute;bottom:0;left:50%;width:2px;height:48px;background:linear-gradient(to top,var(--primary),transparent);transform-origin:bottom center;transform:translateX(-50%) rotate(-85deg);border-radius:1px;transition:transform 1.6s cubic-bezier(0.22,1,0.36,1) 0.35s;box-shadow:0 0 10px var(--primary);}
+        .popup-rpm-needle::after{content:'';position:absolute;bottom:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 12px var(--primary);}
+        .popup-rpm-label{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-family:'Orbitron';font-size:0.52rem;color:var(--text-muted);letter-spacing:1px;white-space:nowrap;}
+
+        /* Header text */
+        .popup-model-tag{font-family:'Orbitron';font-size:0.65rem;color:#ffd60a;letter-spacing:4px;margin-bottom:4px;animation:titleReveal 0.4s ease 0.55s both;text-shadow:0 0 12px rgba(255,214,10,0.5);}
+        .popup-title{font-family:'Orbitron';font-weight:900;font-size:1.6rem;color:var(--primary);letter-spacing:3px;line-height:1;text-shadow:0 0 24px var(--primary),0 0 48px rgba(0,255,65,0.3);margin-bottom:5px;animation:titleReveal 0.4s ease 0.62s both;}
+        .popup-sub{font-family:'Rajdhani';font-size:0.95rem;color:var(--text-dim);letter-spacing:1.2px;margin-bottom:18px;animation:titleReveal 0.4s ease 0.72s both;}
+        @keyframes titleReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+        /* Data chips */
+        .popup-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;animation:titleReveal 0.4s ease 0.82s both;}
+        .chip{
+            background:rgba(0,0,0,0.65);border:1px solid rgba(0,255,65,0.2);
+            border-radius:8px;padding:7px 13px;
+            font-family:'Share Tech Mono';font-size:0.78rem;color:var(--primary);
+            display:flex;flex-direction:column;align-items:center;gap:2px;
+            transition:all 0.3s;
+        }
+        .chip:hover{border-color:var(--primary);box-shadow:0 0 12px var(--primary-dim);transform:translateY(-2px);}
+        .chip-label{font-family:'Orbitron';font-size:0.5rem;color:var(--text-muted);letter-spacing:1px;}
+
+        /* Divider */
+        .popup-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,65,0.15),transparent);margin:0 -4px 16px;animation:titleReveal 0.4s ease 0.88s both;}
+
+        /* Fuel tank bar */
+        .popup-tank-wrap{margin-bottom:18px;animation:titleReveal 0.4s ease 0.9s both;}
+        .popup-tank-label{font-family:'Orbitron';font-size:0.6rem;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:7px;display:flex;justify-content:space-between;}
+        .popup-tank-bg{height:12px;background:rgba(0,0,0,0.6);border-radius:6px;border:1px solid rgba(0,255,65,0.12);overflow:hidden;position:relative;}
+        .popup-tank-fill{height:100%;width:0%;background:linear-gradient(90deg,#ff2d55 0%,#ffd60a 45%,var(--primary) 100%);border-radius:6px;transition:width 1.6s cubic-bezier(0.22,1,0.36,1) 0.9s;position:relative;}
+        .popup-tank-fill::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(255,255,255,0.08) 10px,rgba(255,255,255,0.08) 11px);}
+        .popup-tank-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(to bottom,rgba(255,255,255,0.15),transparent);border-radius:6px 6px 0 0;}
+        .popup-tank-glow{position:absolute;inset:0;border-radius:6px;box-shadow:inset 0 0 8px rgba(0,255,65,0.3);}
+        .popup-tank-segments{display:flex;justify-content:space-between;margin-top:5px;}
+        .popup-tank-segments span{font-family:'Orbitron';font-size:0.5rem;color:var(--text-muted);}
+
+        /* Status dot */
+        .popup-status{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;animation:titleReveal 0.4s ease 0.96s both;}
+        .status-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 12px var(--primary);animation:statusBlink 1.2s ease-in-out infinite;}
+        @keyframes statusBlink{0%,100%{opacity:1}50%{opacity:0.3}}
+        .status-text{font-family:'Orbitron';font-size:0.62rem;color:var(--text-muted);letter-spacing:2px;}
+
+        /* Close button */
+        .popup-close{
+            width:100%;background:transparent;border:1px solid rgba(0,255,65,0.3);
+            color:var(--primary);padding:13px;
+            font-family:'Orbitron';font-size:0.82rem;font-weight:700;letter-spacing:3px;
+            cursor:pointer;border-radius:8px;transition:all 0.35s var(--ease);
+            animation:titleReveal 0.4s ease 1.02s both;
+            position:relative;overflow:hidden;
+        }
+        .popup-close::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,255,65,0.1),transparent);transform:translateX(-100%);transition:transform 0.6s;}
+        .popup-close::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary),transparent);transform:scaleX(0);transition:transform 0.4s var(--ease);}
+        .popup-close:hover::before{transform:translateX(100%);}
+        .popup-close:hover::after{transform:scaleX(1);}
+        .popup-close:hover{background:var(--primary);color:#000;box-shadow:0 0 30px var(--primary-glow),0 0 0 1px var(--primary);}
+
+        /* ── TOAST ── */
+        #_toast{
+            position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+            background:rgba(255,45,85,0.12);border:1px solid rgba(255,45,85,0.45);
+            color:#ff2d55;font-family:'Orbitron';font-size:0.75rem;letter-spacing:1px;
+            padding:11px 22px;border-radius:8px;z-index:9998;
+            backdrop-filter:blur(10px);transition:opacity 0.35s;
+            white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        /* RESPONSIVE */
+        @media(max-width:1400px){.charts-grid-3{grid-template-columns:1fr 1fr;}}
+        @media(max-width:1200px){.stats-kpi{grid-template-columns:repeat(2,1fr);}.charts-grid-3{grid-template-columns:1fr 1fr;}}
+        @media(max-width:1024px){.log-grid{grid-template-columns:1fr;}.charts-grid,.charts-grid-3{grid-template-columns:1fr;}}
+        @media(max-width:768px){
+            body{flex-direction:column;overflow-y:auto;height:auto;min-height:100vh;}
+            .sidebar{position:fixed;bottom:0;left:0;width:100%;height:60px;flex-direction:row;justify-content:space-around;padding:0;border-right:none;border-top:1px solid var(--primary-dim);}
+            .sidebar:hover{width:100%;}.brand-icon{display:none;}
+            .nav-menu{flex-direction:row;justify-content:space-around;gap:0;width:100%;padding:0;}
+            .nav-item{flex-direction:column;padding:4px 8px;justify-content:center;background:none !important;border-radius:0;}
+            .nav-item::before{width:60%;height:2px;top:0;bottom:auto;left:20%;transform:scaleX(0);transform-origin:center;}
+            .nav-item.active::before{transform:scaleX(1);}
+            .nav-icon{margin:0 0 1px 0;font-size:1.25rem;}.nav-text{font-size:0.52rem;opacity:1;letter-spacing:0;}
+            .main-stage{padding:14px;padding-bottom:76px;}.model-header h1{font-size:2rem;}
+            .top-bar{flex-direction:column;align-items:flex-start;gap:12px;}
+            .top-right{width:100%;justify-content:space-between;}
+            .view-toggle{flex:1;}.toggle-btn{flex:1;justify-content:center;}
+            .stats-kpi{grid-template-columns:repeat(2,1fr);}.input-row{grid-template-columns:1fr;}
+            .popup-box{width:96vw;}
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cursor glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<div class="bg-wrap">
+    <div class="grid-floor"></div>
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow2"></div>
+</div>
+
+<!-- ═══════════════════════════════════
+     HYPER ZX-6R POPUP
+═══════════════════════════════════ -->
+<div class="popup-overlay" id="savePopup">
+    <div class="popup-box" id="popupBox">
+        <div class="popup-racing-top"></div>
+        <div class="popup-side-l"></div>
+        <div class="popup-side-r"></div>
+        <div class="popup-corner popup-corner-tl"></div>
+        <div class="popup-corner popup-corner-tr"></div>
+        <div class="popup-corner popup-corner-bl"></div>
+        <div class="popup-corner popup-corner-br"></div>
+        <div class="popup-scan"></div>
+        <canvas class="popup-canvas" id="popupCanvas"></canvas>
+
+        <div class="popup-body">
+            <!-- Bike Stage -->
+            <div class="popup-bike-stage">
+                <div class="popup-road"></div>
+                <div class="popup-speed-lines">
+                    <div class="speed-line"></div>
+                    <div class="speed-line"></div>
+                    <div class="speed-line"></div>
+                    <div class="speed-line"></div>
+                    <div class="speed-line"></div>
+                </div>
+                <div class="popup-zx6r-wrap">
+                    <div class="popup-exhaust">
+                        <div class="exhaust-flame"></div>
+                        <div class="exhaust-flame"></div>
+                        <div class="exhaust-flame"></div>
+                    </div>
+                    <svg class="zx6r-svg" viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="70" r="18" stroke="#00ff41" stroke-width="2.5" fill="none" opacity="0.65"/>
+                        <circle cx="40" cy="70" r="12" stroke="#00ff41" stroke-width="1" fill="none" opacity="0.3"/>
+                        <circle cx="40" cy="70" r="5" fill="#00ff41" opacity="0.85"/>
+                        <circle cx="178" cy="70" r="18" stroke="#00ff41" stroke-width="2.5" fill="none" opacity="0.65"/>
+                        <circle cx="178" cy="70" r="12" stroke="#00ff41" stroke-width="1" fill="none" opacity="0.3"/>
+                        <circle cx="178" cy="70" r="5" fill="#00ff41" opacity="0.85"/>
+                        <line x1="40" y1="70" x2="88" y2="56" stroke="#00ff41" stroke-width="2" opacity="0.7"/>
+                        <path d="M40 72 Q64 78 88 68" stroke="#ffd60a" stroke-width="1" stroke-dasharray="3 2" opacity="0.4"/>
+                        <path d="M88 56 L100 28 L130 22 L155 30 L165 52" stroke="#00ff41" stroke-width="2.5" fill="none" opacity="0.85"/>
+                        <path d="M88 56 L72 52 L65 58" stroke="#00ff41" stroke-width="1.5" fill="none" opacity="0.5"/>
+                        <path d="M165 52 L178 58 L178 70" stroke="#00ff41" stroke-width="2" opacity="0.7"/>
+                        <path d="M158 48 L172 56" stroke="#00ff41" stroke-width="1.5" opacity="0.5"/>
+                        <rect x="95" y="48" width="50" height="22" rx="3" fill="rgba(0,255,65,0.07)" stroke="#00ff41" stroke-width="1" opacity="0.65"/>
+                        <path d="M95 62 L60 66 L52 70" stroke="#ff6b00" stroke-width="2.5" opacity="0.75"/>
+                        <path d="M95 65 L58 68 L52 72" stroke="#ffd60a" stroke-width="1" opacity="0.4"/>
+                        <path d="M130 22 L150 14 L168 18 L175 30 L165 30 L155 30" fill="rgba(0,255,65,0.09)" stroke="#00ff41" stroke-width="1.5" opacity="0.9"/>
+                        <ellipse cx="172" cy="20" rx="8" ry="5.5" fill="rgba(255,255,255,0.15)" stroke="#0af5ff" stroke-width="1.5" opacity="0.9"/>
+                        <ellipse cx="172" cy="20" rx="3.5" ry="3" fill="#0af5ff" opacity="0.75"/>
+                        <path d="M155 14 L162 8 L173 10 L175 18 L165 14 Z" fill="rgba(10,245,255,0.12)" stroke="#0af5ff" stroke-width="1" opacity="0.55"/>
+                        <path d="M100 28 L92 32 L84 40 L88 42 L100 36 L130 30 L130 22 Z" fill="rgba(0,255,65,0.07)" stroke="#00ff41" stroke-width="1" opacity="0.5"/>
+                        <ellipse cx="112" cy="24" rx="8" ry="8" fill="rgba(0,255,65,0.13)" stroke="#00ff41" stroke-width="1" opacity="0.4"/>
+                        <rect x="82" y="50" width="8" height="4" rx="1" fill="#ff2d55" opacity="0.85"/>
+                        <text x="110" y="65" font-family="monospace" font-size="7" fill="#ffd60a" opacity="0.65" text-anchor="middle">ZX-6R</text>
+                        <line x1="0" y1="54" x2="26" y2="54" stroke="#00ff41" stroke-width="1" opacity="0.3"/>
+                        <line x1="0" y1="62" x2="18" y2="62" stroke="#00ff41" stroke-width="0.7" opacity="0.2"/>
+                        <line x1="0" y1="46" x2="12" y2="46" stroke="#ffd60a" stroke-width="0.7" opacity="0.2"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- RPM Gauge -->
+            <div class="popup-rpm-wrap">
+                <div class="popup-rpm-bg"></div>
+                <div class="popup-rpm-needle" id="popupRpmNeedle"></div>
+                <div class="popup-rpm-label">RPM × 1000</div>
+            </div>
+
+            <div class="popup-model-tag" id="popupModelTag">KAWASAKI ZX-6R · 636cc · STORM</div>
+            <div class="popup-title" id="popupTitle">FULL SEND! ⚡</div>
+            <div class="popup-sub" id="popupSub">ข้อมูลการเติมน้ำมันถูกบันทึกแล้ว</div>
+
+            <div class="popup-chips" id="popupChips"></div>
+            <div class="popup-divider"></div>
+
+            <!-- Fuel Tank Bar -->
+            <div class="popup-tank-wrap">
+                <div class="popup-tank-label">
+                    <span>⛽ FUEL TANK LEVEL</span>
+                    <span id="popupTankPct">0%</span>
+                </div>
+                <div class="popup-tank-bg">
+                    <div class="popup-tank-fill" id="popupFuelBar"></div>
+                    <div class="popup-tank-glow"></div>
+                </div>
+                <div class="popup-tank-segments">
+                    <span>E</span><span>1/4</span><span>1/2</span><span>3/4</span><span>F</span>
+                </div>
+            </div>
+
+            <div class="popup-status">
+                <div class="status-dot"></div>
+                <span class="status-text">SYSTEM ONLINE · DATA SYNCED</span>
+                <div class="status-dot"></div>
+            </div>
+
+            <button class="popup-close" onclick="closePopup()">⚡ RIDE ON — ปิด</button>
+        </div>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+    <div class="brand-icon">STORM</div>
+    <div class="nav-menu">
+        <a href="index.html"    class="nav-item"><span class="nav-icon">📊</span><span class="nav-text">SPECS</span></a>
+        <a href="gasoline.html" class="nav-item active"><span class="nav-icon">⛽</span><span class="nav-text">FUEL</span></a>
+        <a href="finance.html"  class="nav-item"><span class="nav-icon">💳</span><span class="nav-text">FINANCE</span></a>
+        <a href="service.html"  class="nav-item"><span class="nav-icon">🔧</span><span class="nav-text">SERVICE</span></a>
+    </div>
+    <div style="height:20px"></div>
+</nav>
+
+<main class="main-stage">
+
+    <!-- TOPBAR -->
+    <header class="top-bar">
+        <div class="model-header">
+            <span class="sub">PROJECT</span>
+            <h1>ZX-<span>6R</span></h1>
+        </div>
+        <div class="top-right">
+            <div class="theme-switcher">
+                <div class="theme-dot active" data-t="green"  title="เขียว"  onclick="setTheme('green',this)"></div>
+                <div class="theme-dot"        data-t="blue"   title="น้ำเงิน" onclick="setTheme('blue',this)"></div>
+                <div class="theme-dot"        data-t="orange" title="ส้ม"    onclick="setTheme('orange',this)"></div>
+                <div class="theme-dot"        data-t="purple" title="ม่วง"   onclick="setTheme('purple',this)"></div>
+                <div class="theme-dot"        data-t="mono"   title="โมโน"   onclick="setTheme('mono',this)"></div>
+            </div>
+            <div class="view-toggle">
+                <button class="toggle-btn active" onclick="switchView('log')">⛽ บันทึก</button>
+                <button class="toggle-btn"        onclick="switchView('stats')">📈 สถิติ</button>
+            </div>
+            <div class="rider-profile">
+                <div class="rider-info">
+                    <span class="label">นักบิด</span>
+                    <span class="name">ICETSU</span>
+                </div>
+                <div class="rider-avatar">👤</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ VIEW: LOG ═══ -->
+    <div class="view active" id="view-log">
+        <div class="log-grid">
+
+            <!-- FORM -->
+            <aside class="panel">
+                <div class="panel-title" id="formTitle">บันทึกการเติมน้ำมัน</div>
+                <form id="fuelForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-steps">
+
+                        <div class="step-item">
+                            <div class="step-connector"><div class="step-dot active" id="dot1">1</div></div>
+                            <div class="step-content">
+                                <label class="form-label">📅 วันที่เติมน้ำมัน</label>
+                                <input type="date" id="dateInput" class="form-input" required>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <div class="step-connector"><div class="step-dot" id="dot2">2</div></div>
+                            <div class="step-content">
+                                <label class="form-label">🏪 สถานีบริการน้ำมัน</label>
+                                <div class="station-grid" id="stationGrid">
+                                    <button type="button" class="station-btn" data-station="PTT"      onclick="selectStation(this)"><span>🟡</span> PTT</button>
+                                    <button type="button" class="station-btn" data-station="Bangchak" onclick="selectStation(this)"><span>🟢</span> Bangchak</button>
+                                    <button type="button" class="station-btn" data-station="Shell"    onclick="selectStation(this)"><span>🔴</span> Shell</button>
+                                    <button type="button" class="station-btn" data-station="Caltex"   onclick="selectStation(this)"><span>🔵</span> Caltex</button>
+                                    <button type="button" class="station-btn" data-station="Esso"     onclick="selectStation(this)"><span>⚪</span> Esso</button>
+                                    <button type="button" class="station-btn" data-station="PT"       onclick="selectStation(this)"><span>🟠</span> PT</button>
+                                    <button type="button" class="station-btn" data-station="Susco"    onclick="selectStation(this)"><span>🟣</span> Susco</button>
+                                    <button type="button" class="station-btn" data-station="IRPC"     onclick="selectStation(this)"><span>⚫</span> IRPC</button>
+                                </div>
+                                <input type="hidden" id="stationInput" required>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <div class="step-connector"><div class="step-dot" id="dot3">3</div></div>
+                            <div class="step-content">
+                                <label class="form-label">🛢️ ประเภทน้ำมัน</label>
+                                <div class="fuel-grid" id="fuelGrid">
+                                    <div class="locked-msg" id="fuelLocked" style="display:flex;">⚠️ เลือกสถานีบริการก่อน</div>
+                                </div>
+                                <input type="hidden" id="fuelTypeInput" required>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <div class="step-connector"><div class="step-dot" id="dot4">4</div></div>
+                            <div class="step-content">
+                                <label class="form-label">📊 ข้อมูลการเติม</label>
+                                <div style="margin-bottom:10px;">
+                                    <label class="form-label">🏁 เลขไมล์ปัจจุบัน</label>
+                                    <div class="input-with-unit">
+                                        <input type="number" id="odoInput" class="form-input" step="0.1" placeholder="0.0" required>
+                                        <span class="input-unit">KM</span>
+                                    </div>
+                                </div>
+                                <div class="input-row">
+                                    <div>
+                                        <label class="form-label">💰 จำนวนเงิน</label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="costInput" class="form-input" step="0.01" placeholder="0.00" required>
+                                            <span class="input-unit">฿</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">💧 จำนวนลิตร</label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="litersInput" class="form-input" step="0.01" placeholder="0.00" required>
+                                            <span class="input-unit">L</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <div class="step-connector"><div class="step-dot" id="dot5">5</div></div>
+                            <div class="step-content" style="padding-bottom:0">
+                                <label class="form-label">📝 หมายเหตุ <span style="font-family:Rajdhani;text-transform:none;color:var(--text-muted);font-size:0.75rem;">(ไม่บังคับ)</span></label>
+                                <textarea id="noteInput" class="form-textarea" placeholder="เช่น เติมเต็มถัง, น้ำมันใกล้หมด..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button type="submit" class="btn" id="submitBtn">⚡ บันทึก</button>
+                        <button type="button" class="btn btn-cancel" id="cancelBtn" onclick="resetForm()">✕ ยกเลิก</button>
+                    </div>
+                </form>
+            </aside>
+
+            <!-- TABLE PANEL -->
+            <section class="panel" style="display:flex;flex-direction:column;gap:0;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <div class="panel-title" style="margin-bottom:0;">ประวัติการเติมน้ำมัน</div>
+                    <div id="tableCount" style="font-family:'Share Tech Mono';font-size:0.78rem;color:var(--text-muted);"></div>
+                </div>
+                <div class="table-wrapper" style="flex:1;overflow-y:auto;max-height:calc(100vh - 220px);">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>📅 วันที่</th>
+                                <th>🏪 สถานี</th>
+                                <th>🛢️ น้ำมัน</th>
+                                <th class="td-num">🏁 ไมล์</th>
+                                <th class="td-num">💧 ลิตร</th>
+                                <th class="td-num">💰 ค่าใช้จ่าย</th>
+                                <th class="td-num">฿/ลิตร</th>
+                                <th>📝 หมายเหตุ</th>
+                                <th>⚙️ จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                    <div class="empty-state" id="emptyState" style="display:none;">
+                        <span class="icon">⛽</span>
+                        <p>ยังไม่มีข้อมูลการเติมน้ำมัน</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ═══ VIEW: STATS ═══ -->
+    <div class="view" id="view-stats">
+
+        <div class="stats-kpi">
+            <div class="stat-card c-green"><span class="stat-icon">⛽</span><div class="stat-label">จำนวนครั้งที่เติม</div><div class="stat-val c-green" id="s-total-logs">—</div><div class="stat-unit">ครั้ง</div></div>
+            <div class="stat-card c-blue"><span class="stat-icon">📏</span><div class="stat-label">ระยะทางรวม</div><div class="stat-val c-blue" id="s-total-km">—</div><div class="stat-unit">กม.</div></div>
+            <div class="stat-card c-yellow"><span class="stat-icon">💰</span><div class="stat-label">ค่าน้ำมันรวม</div><div class="stat-val c-yellow" id="s-total-cost">—</div><div class="stat-unit">บาท</div></div>
+            <div class="stat-card c-red"><span class="stat-icon">🏁</span><div class="stat-label">ลิตรรวมทั้งหมด</div><div class="stat-val c-red" id="s-total-liters">—</div><div class="stat-unit">ลิตร</div></div>
+            <div class="stat-card c-purple"><span class="stat-icon">💧</span><div class="stat-label">ราคาเฉลี่ย/ลิตร</div><div class="stat-val c-purple" id="s-avg-price">—</div><div class="stat-unit">บาท/ลิตร</div></div>
+            <div class="stat-card c-green"><span class="stat-icon">🔄</span><div class="stat-label">เฉลี่ยต่อครั้ง</div><div class="stat-val c-green" id="s-avg-cost">—</div><div class="stat-unit">บาท</div></div>
+            <div class="stat-card c-blue"><span class="stat-icon">📊</span><div class="stat-label">เฉลี่ยลิตร/ครั้ง</div><div class="stat-val c-blue" id="s-avg-liters">—</div><div class="stat-unit">ลิตร</div></div>
+            <div class="stat-card c-yellow"><span class="stat-icon">⚡</span><div class="stat-label">น้ำมันที่ใช้บ่อยสุด</div><div class="stat-val c-yellow" id="s-top-fuel" style="font-size:0.85rem;">—</div><div class="stat-unit">ประเภท</div></div>
+        </div>
+
+        <div class="chart-toggle-bar">
+            <span class="ctb-label">แสดงกราฟ:</span>
+            <div class="chart-pill active" data-chart="cost"       onclick="toggleChart(this)"><div class="pill-dot"></div>ค่าใช้จ่าย</div>
+            <div class="chart-pill active" data-chart="liters"     onclick="toggleChart(this)"><div class="pill-dot"></div>ลิตร</div>
+            <div class="chart-pill active" data-chart="price"      onclick="toggleChart(this)"><div class="pill-dot"></div>฿/ลิตร</div>
+            <div class="chart-pill active" data-chart="monthly"    onclick="toggleChart(this)"><div class="pill-dot"></div>รายเดือน</div>
+            <div class="chart-pill active" data-chart="cumulative" onclick="toggleChart(this)"><div class="pill-dot"></div>สะสม</div>
+            <div class="chart-pill active" data-chart="station"    onclick="toggleChart(this)"><div class="pill-dot"></div>สถานี</div>
+            <div class="chart-pill active" data-chart="fueltype"   onclick="toggleChart(this)"><div class="pill-dot"></div>ประเภทน้ำมัน</div>
+            <div class="chart-pill active" data-chart="scatter"    onclick="toggleChart(this)"><div class="pill-dot"></div>ลิตร vs ฿</div>
+        </div>
+
+        <div class="charts-grid-3">
+            <div class="chart-block" id="block-cost"><div class="panel"><div class="panel-title">ค่าใช้จ่ายต่อครั้ง</div><div class="chart-wrap"><canvas id="costChart"></canvas></div></div></div>
+            <div class="chart-block" id="block-liters"><div class="panel"><div class="panel-title">ลิตรต่อครั้ง</div><div class="chart-wrap"><canvas id="litersChart"></canvas></div></div></div>
+            <div class="chart-block" id="block-price"><div class="panel"><div class="panel-title">แนวโน้มราคา ฿/ลิตร</div><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div></div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-block" id="block-monthly"><div class="panel"><div class="panel-title">ค่าใช้จ่ายรายเดือน</div><div class="chart-wrap"><canvas id="monthlyChart"></canvas></div></div></div>
+            <div class="chart-block" id="block-cumulative"><div class="panel"><div class="panel-title">สะสมค่าน้ำมัน (Cumulative)</div><div class="chart-wrap"><canvas id="cumulativeChart"></canvas></div></div></div>
+        </div>
+
+        <div class="charts-grid-3">
+            <div class="chart-block" id="block-station"><div class="panel"><div class="panel-title">สถานีที่ใช้บ่อย</div><div class="chart-wrap-sm"><canvas id="stationChart"></canvas></div></div></div>
+            <div class="chart-block" id="block-fueltype"><div class="panel"><div class="panel-title">ประเภทน้ำมันที่ใช้</div><div class="chart-wrap-sm"><canvas id="fuelTypeChart"></canvas></div></div></div>
+            <div class="chart-block" id="block-scatter"><div class="panel"><div class="panel-title">ลิตร vs ค่าใช้จ่าย</div><div class="chart-wrap-sm"><canvas id="scatterChart"></canvas></div></div></div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ═══════════════════════════ AUDIO ═══════════════════════════ -->
+<audio id="snd-click"  src="sound/gasoline_click.mp3"  preload="auto"></audio>
+<audio id="snd-popup"  src="sound/gasoline.mp3"        preload="auto"></audio>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA4hzvlOHySG6GoZSgqcgK4BgAsF-9pYvM",
+        authDomain: "zx6r-storm.firebaseapp.com",
+        databaseURL: "https://zx6r-storm-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "zx6r-storm",
+        storageBucket: "zx6r-storm.firebasestorage.app",
+        messagingSenderId: "338284181941",
+        appId: "1:338284181941:web:c4b2127450b2a34ae8c1fc",
+        measurementId: "G-2507L5ZJLN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    const fuelLogsRef = ref(db, 'fuel_logs');
+
+    /* ═══════════════════════════════
+       SOUND ENGINE
+    ═══════════════════════════════ */
+    const sndClick = document.getElementById('snd-click');
+    const sndPopup = document.getElementById('snd-popup');
+
+    function playClick(){
+        try{
+            sndClick.currentTime = 0;
+            sndClick.volume = 0.55;
+            sndClick.play().catch(()=>{});
+        }catch(e){}
+    }
+    function playPopup(){
+        try{
+            sndPopup.currentTime = 0;
+            sndPopup.volume = 0.75;
+            sndPopup.play().catch(()=>{});
+        }catch(e){}
+    }
+
+    /* Global click sound on all clickable elements */
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('button, a, .station-btn, .fuel-btn, .toggle-btn, .theme-dot, .chart-pill, .action-btn, .nav-item, .inline-save-btn, .inline-cancel-btn');
+        if(target) playClick();
+    });
+
+    /* ═══════════════════════════════
+       CURSOR GLOW FOLLOW
+    ═══════════════════════════════ */
+    const cursorGlow = document.getElementById('cursorGlow');
+    document.addEventListener('mousemove', e => {
+        cursorGlow.style.left = e.clientX + 'px';
+        cursorGlow.style.top  = e.clientY + 'px';
+    });
+
+    /* ═══════════════════════════════
+       CLICK RIPPLE EFFECT
+    ═══════════════════════════════ */
+    document.addEventListener('click', (e) => {
+        const r = document.createElement('div');
+        r.className = 'ripple';
+        const size = 30 + Math.random() * 20;
+        Object.assign(r.style,{
+            left: e.clientX + 'px', top: e.clientY + 'px',
+            width: size + 'px', height: size + 'px'
+        });
+        document.body.appendChild(r);
+        r.addEventListener('animationend', () => r.remove());
+    });
+
+    /* ═══════════════════════════════
+       FUEL CATALOG
+    ═══════════════════════════════ */
+    const FUEL_CATALOG = {
+        PTT:      ['Gasohol 91','Gasohol 95','Gasohol E20','Gasohol E85','Gasoline 95','Diesel','Diesel B7','NGV'],
+        Bangchak: ['Hi Premium 97','Gasohol EVO 91 S','Gasohol EVO 95 S','Gasohol EVO E20 S','Gasohol EVO E85 S','Hi Premium Diesel S','Hi Diesel S'],
+        Shell:    ['Gasohol 91','Gasohol 95','Gasohol E20','Shell V-Power 95','Diesel','Diesel V-Power'],
+        Caltex:   ['Gasohol 91','Gasohol 95','Gasohol E20','Caltex Techron 95','Diesel'],
+        Esso:     ['Gasohol 91','Gasohol 95','Gasohol E20','Gasoline 95','Diesel'],
+        PT:       ['Gasohol 91','Gasohol 95','Gasohol E20','Gasohol E85','Diesel'],
+        Susco:    ['Gasohol 91','Gasohol 95','Gasohol E20','Diesel'],
+        IRPC:     ['Gasohol 91','Gasohol 95','Diesel']
+    };
+    const FUEL_COLORS = {
+        'Gasohol 91':'#4caf50','Gasohol 95':'#ff9800','Gasohol E20':'#2196f3','Gasohol E85':'#e91e63',
+        'Gasoline 95':'#ffeb3b','Diesel':'#607d8b','Diesel B7':'#78909c','Diesel V-Power':'#ff6d00',
+        'Shell V-Power 95':'#e53935','Caltex Techron 95':'#1565c0','NGV':'#9c27b0',
+        'Hi Premium 97':'#ffc107','Gasohol EVO 91 S':'#66bb6a','Gasohol EVO 95 S':'#ffa726',
+        'Gasohol EVO E20 S':'#f57c00','Gasohol EVO E85 S':'#e53935',
+        'Hi Premium Diesel S':'#ab47bc','Hi Diesel S':'#1a237e'
+    };
+
+    /* ═══════════════════════════════
+       STATE
+    ═══════════════════════════════ */
+    let allLogs = [], selectedStation = '', selectedFuelType = '';
+    let inlineEditId = null;
+
+    /* ═══════════════════════════════
+       DOM REFS
+    ═══════════════════════════════ */
+    const form          = document.getElementById('fuelForm');
+    const dateInput     = document.getElementById('dateInput');
+    const odoInput      = document.getElementById('odoInput');
+    const litersInput   = document.getElementById('litersInput');
+    const costInput     = document.getElementById('costInput');
+    const noteInput     = document.getElementById('noteInput');
+    const editIdInput   = document.getElementById('editId');
+    const stationInput  = document.getElementById('stationInput');
+    const fuelTypeInput = document.getElementById('fuelTypeInput');
+    const submitBtn     = document.getElementById('submitBtn');
+    const cancelBtn     = document.getElementById('cancelBtn');
+    const formTitle     = document.getElementById('formTitle');
+    const tableBody     = document.getElementById('tableBody');
+    const emptyState    = document.getElementById('emptyState');
+
+    /* ═══════════════════════════════
+       CHARTS
+    ═══════════════════════════════ */
+    const cDef = {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ labels:{ color:'#555', font:{ family:'Orbitron', size:9 }, boxWidth:10 } } },
+        scales:{
+            x:{ ticks:{ color:'#444', font:{ family:'Share Tech Mono', size:9 } }, grid:{ color:'rgba(255,255,255,0.03)' } },
+            y:{ ticks:{ color:'#444', font:{ family:'Share Tech Mono', size:9 } }, grid:{ color:'rgba(255,255,255,0.03)' } }
+        }
+    };
+    const mk = (id,type,extra={}) => new Chart(
+        document.getElementById(id).getContext('2d'),
+        { type, data:{ labels:[], datasets:[] }, options:{ ...cDef, ...extra } }
+    );
+    const donutExtra = { scales:{}, plugins:{ legend:{ labels:{ color:'#ccc', font:{ family:'Orbitron', size:9 }, boxWidth:10 } }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw} ครั้ง (${Math.round(ctx.parsed/(ctx.dataset.data.reduce((a,b)=>a+b,0)||1)*100)}%)` } } } };
+
+    const costChart       = mk('costChart','bar');
+    const litersChart     = mk('litersChart','bar');
+    const priceChart      = mk('priceChart','line');
+    const monthlyChart    = mk('monthlyChart','bar');
+    const cumulativeChart = mk('cumulativeChart','line');
+    const stationChart    = mk('stationChart','doughnut',donutExtra);
+    const fuelTypeChart   = mk('fuelTypeChart','doughnut',donutExtra);
+    const scatterChart    = mk('scatterChart','scatter',{
+        ...cDef,
+        plugins:{ legend:{ labels:{ color:'#555', font:{ family:'Orbitron', size:9 }, boxWidth:10 } } },
+        scales:{
+            x:{ title:{ display:true, text:'ลิตร', color:'#555', font:{ family:'Orbitron', size:9 } }, ticks:{ color:'#444', font:{ family:'Share Tech Mono', size:9 } }, grid:{ color:'rgba(255,255,255,0.03)' } },
+            y:{ title:{ display:true, text:'฿', color:'#555', font:{ family:'Orbitron', size:9 } }, ticks:{ color:'#444', font:{ family:'Share Tech Mono', size:9 } }, grid:{ color:'rgba(255,255,255,0.03)' } }
+        }
+    });
+
+    /* Default date */
+    dateInput.value = new Date().toLocaleDateString('sv-SE',{ timeZone:'Asia/Bangkok' });
+    stepCheck();
+
+    /* ═══════════════════════════════
+       THEME
+    ═══════════════════════════════ */
+    window.setTheme = (t,el) => {
+        document.documentElement.setAttribute('data-theme', t==='green'?'':t);
+        document.querySelectorAll('.theme-dot').forEach(d=>d.classList.remove('active'));
+        el.classList.add('active');
+        localStorage.setItem('storm-theme',t);
+    };
+    (() => {
+        const s = localStorage.getItem('storm-theme');
+        if(s && s!=='green'){
+            document.documentElement.setAttribute('data-theme',s);
+            document.querySelectorAll('.theme-dot').forEach(d=>d.classList.remove('active'));
+            document.querySelector(`.theme-dot[data-t="${s}"]`)?.classList.add('active');
+        }
+    })();
+
+    /* ═══════════════════════════════
+       STATION SELECT
+    ═══════════════════════════════ */
+    window.selectStation = (btn) => {
+        document.querySelectorAll('.station-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedStation = btn.dataset.station;
+        stationInput.value = selectedStation;
+        renderFuels(selectedStation);
+        setDot('dot2','filled'); setDot('dot3','active');
+    };
+
+    function renderFuels(station, preSelect='') {
+        const grid = document.getElementById('fuelGrid');
+        const locked = document.getElementById('fuelLocked');
+        grid.innerHTML = ''; locked.style.display='none';
+        if(!preSelect){ selectedFuelType=''; fuelTypeInput.value=''; document.getElementById('dot3').classList.remove('filled'); }
+        (FUEL_CATALOG[station]||[]).forEach(fuel => {
+            const color = FUEL_COLORS[fuel]||'#aaa';
+            const btn = document.createElement('button');
+            btn.type='button'; btn.className='fuel-btn'; btn.dataset.fuel=fuel;
+            btn.innerHTML=`<span class="fuel-dot" style="background:${color};box-shadow:0 0 6px ${color}88"></span>${fuel}`;
+            if(fuel===preSelect){ btn.classList.add('selected'); selectedFuelType=fuel; fuelTypeInput.value=fuel; }
+            btn.onclick=()=>selectFuel(btn);
+            grid.appendChild(btn);
+        });
+    }
+
+    window.selectFuel = (btn) => {
+        document.querySelectorAll('.fuel-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedFuelType=btn.dataset.fuel; fuelTypeInput.value=selectedFuelType;
+        setDot('dot3','filled'); setDot('dot4','active');
+    };
+
+    function setDot(id,state){
+        const d=document.getElementById(id);
+        d.classList.remove('active','filled');
+        d.classList.add(state);
+    }
+    function stepCheck(){
+        if(dateInput.value){ setDot('dot1','filled'); setDot('dot2','active'); }
+    }
+    dateInput.addEventListener('change',stepCheck);
+
+    /* ═══════════════════════════════
+       FORM SUBMIT
+    ═══════════════════════════════ */
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!stationInput.value){ showToast('กรุณาเลือกสถานีบริการ'); return; }
+        if(!fuelTypeInput.value){ showToast('กรุณาเลือกประเภทน้ำมัน'); return; }
+        const payload = {
+            date:dateInput.value, station:stationInput.value, fuelType:fuelTypeInput.value,
+            odometer:parseFloat(odoInput.value), liters:parseFloat(litersInput.value),
+            cost:parseFloat(costInput.value), note:noteInput.value.trim(),
+            timestamp:new Date(dateInput.value+'T00:00:00+07:00').getTime()
+        };
+        try {
+            const isEdit = !!editIdInput.value;
+            if(isEdit){ await update(ref(db,`fuel_logs/${editIdInput.value}`),payload); }
+            else{ await push(fuelLogsRef,payload); }
+            showSavePopup(payload,isEdit);
+            window.resetForm();
+        } catch(err){ console.error(err); showToast('เกิดข้อผิดพลาด: '+err.message); }
+    });
+
+    /* ═══════════════════════════════
+       HYPER ZX-6R POPUP
+    ═══════════════════════════════ */
+    let _particleAF;
+
+    window.showSavePopup = (data, isEdit) => {
+        const overlay  = document.getElementById('savePopup');
+        const fuelBar  = document.getElementById('popupFuelBar');
+        const chips    = document.getElementById('popupChips');
+        const needle   = document.getElementById('popupRpmNeedle');
+        const tankPct  = document.getElementById('popupTankPct');
+
+        document.getElementById('popupTitle').textContent    = isEdit ? 'อัปเดตสำเร็จ! ✅' : 'FULL SEND! ⚡';
+        document.getElementById('popupModelTag').textContent = isEdit
+            ? 'DATA UPDATED · ZX-6R · STORM'
+            : 'KAWASAKI ZX-6R · 636cc · STORM';
+        document.getElementById('popupSub').textContent = isEdit
+            ? `แก้ไขข้อมูลวันที่ ${data.date} เรียบร้อยแล้ว`
+            : `เติม ${data.station} · ${data.fuelType}`;
+
+        const ppl = data.liters>0 ? (data.cost/data.liters).toFixed(2) : '—';
+        chips.innerHTML = `
+            <div class="chip"><div class="chip-label">ค่าใช้จ่าย</div>฿${data.cost?.toFixed(2)}</div>
+            <div class="chip"><div class="chip-label">ลิตร</div>${data.liters?.toFixed(2)} L</div>
+            <div class="chip"><div class="chip-label">ไมล์</div>${data.odometer?.toLocaleString()} KM</div>
+            <div class="chip"><div class="chip-label">ราคา/ลิตร</div>฿${ppl}</div>
+        `;
+
+        const pct = Math.min(100, Math.round((data.liters/17)*100));
+        fuelBar.style.width = '0%';
+        tankPct.textContent = pct+'%';
+        needle.style.transform = 'translateX(-50%) rotate(-85deg)';
+
+        overlay.classList.add('show');
+
+        // Play popup sound
+        playPopup();
+
+        // Start particles
+        startParticles();
+
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+            fuelBar.style.width = pct+'%';
+            const deg = -85 + (pct/100)*170;
+            needle.style.transform = `translateX(-50%) rotate(${deg}deg)`;
+        }));
+    };
+
+    function startParticles(){
+        const cv  = document.getElementById('popupCanvas');
+        const box = document.getElementById('popupBox');
+        cv.width  = box.offsetWidth  || 500;
+        cv.height = box.offsetHeight || 580;
+        const ctx = cv.getContext('2d');
+        const W = cv.width, H = cv.height;
+        cancelAnimationFrame(_particleAF);
+
+        const particles = Array.from({length:70},()=>({
+            x: Math.random()*W, y: Math.random()*H,
+            vx: (Math.random()-0.5)*3.5, vy: (Math.random()-1.8)*2.5,
+            r: Math.random()*2.8+0.4, life: Math.random(),
+            type: Math.random()<0.55 ? 'spark' : (Math.random()<0.6 ? 'drop' : 'hex'),
+            color: Math.random()<0.5 ? '#00ff41' : (Math.random()<0.5 ? '#ffd60a' : '#ff6b00'),
+            rot: Math.random()*Math.PI*2
+        }));
+
+        function draw(){
+            ctx.clearRect(0,0,W,H);
+            particles.forEach(p=>{
+                p.x+=p.vx; p.y+=p.vy; p.rot+=0.05;
+                p.life-=0.01;
+                if(p.life<=0 || p.x<-10 || p.x>W+10){
+                    p.x=Math.random()*W; p.y=H+5; p.life=0.7+Math.random()*0.3;
+                    p.vx=(Math.random()-0.5)*3.5; p.vy=-(Math.random()*2.5+0.8);
+                    p.rot=Math.random()*Math.PI*2;
+                }
+                ctx.globalAlpha = Math.max(0,p.life*0.9);
+                ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+                if(p.type==='spark'){
+                    ctx.beginPath();
+                    ctx.moveTo(p.x,p.y); ctx.lineTo(p.x-p.vx*5,p.y-p.vy*5);
+                    ctx.strokeStyle=p.color; ctx.lineWidth=p.r;
+                    ctx.stroke();
+                } else if(p.type==='drop'){
+                    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+                    ctx.fillStyle=p.color; ctx.fill();
+                } else {
+                    // hexagon
+                    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+                    ctx.beginPath();
+                    for(let i=0;i<6;i++){
+                        const a=i*Math.PI/3;
+                        i===0 ? ctx.moveTo(Math.cos(a)*p.r*2,Math.sin(a)*p.r*2) : ctx.lineTo(Math.cos(a)*p.r*2,Math.sin(a)*p.r*2);
+                    }
+                    ctx.closePath(); ctx.strokeStyle=p.color; ctx.lineWidth=0.7; ctx.stroke();
+                    ctx.restore();
+                }
+                ctx.shadowBlur=0;
+            });
+            ctx.globalAlpha=1;
+            _particleAF = requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
+    window.closePopup = () => {
+        document.getElementById('savePopup').classList.remove('show');
+        cancelAnimationFrame(_particleAF);
+        const cv=document.getElementById('popupCanvas');
+        cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+        sndPopup.pause(); sndPopup.currentTime=0;
+    };
+    document.getElementById('savePopup').addEventListener('click',e=>{ if(e.target.id==='savePopup') closePopup(); });
+
+    /* ═══════════════════════════════
+       TOAST
+    ═══════════════════════════════ */
+    function showToast(msg){
+        let t=document.getElementById('_toast');
+        if(!t){ t=document.createElement('div'); t.id='_toast'; document.body.appendChild(t); }
+        t.textContent=msg; t.style.opacity='1'; t.style.display='block';
+        clearTimeout(t._tid); t._tid=setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>{ t.style.display='none'; },400); },2600);
+    }
+
+    /* ═══════════════════════════════
+       REALTIME DATA
+    ═══════════════════════════════ */
+    onValue(fuelLogsRef,(snapshot)=>{
+        const data=snapshot.val();
+        tableBody.innerHTML=''; allLogs=[];
+        if(data){
+            const arr=Object.keys(data).map(k=>({id:k,...data[k]}));
+            arr.sort((a,b)=>a.timestamp-b.timestamp);
+            allLogs=arr;
+            arr.forEach((log,idx)=>renderRow(log,idx));
+            emptyState.style.display='none';
+            document.getElementById('tableCount').textContent=`${arr.length} รายการ`;
+        } else {
+            emptyState.style.display='block';
+            document.getElementById('tableCount').textContent='';
+        }
+        updateStats();
+    });
+
+    /* ═══════════════════════════════
+       RENDER ROW
+    ═══════════════════════════════ */
+    function renderRow(log, idx){
+        const ppl = log.liters>0 ? (log.cost/log.liters).toFixed(2) : null;
+        const fc  = FUEL_COLORS[log.fuelType]||'#aaa';
+        const tr  = document.createElement('tr');
+        tr.id = `row-${log.id}`;
+        tr.innerHTML=`
+            <td style="color:var(--text-muted);font-size:0.68rem;">${idx+1}</td>
+            <td>${log.date}</td>
+            <td style="color:var(--text-dim);white-space:nowrap;">${log.station||'—'}</td>
+            <td><span class="fuel-badge" style="color:${fc};border:1px solid ${fc};background:${fc}22;">
+                <span style="width:7px;height:7px;border-radius:50%;background:${fc};display:inline-block;flex-shrink:0;"></span>
+                ${log.fuelType||'—'}
+            </span></td>
+            <td class="td-num">${log.odometer?.toLocaleString()||'—'}</td>
+            <td class="td-num">${log.liters?.toFixed(2)||'—'}</td>
+            <td class="td-num td-cost">฿${log.cost?.toFixed(2)||'—'}</td>
+            <td class="td-num td-ppl">${ppl?'฿'+ppl:'—'}</td>
+            <td class="note-cell" title="${log.note||''}">${log.note||'—'}</td>
+            <td style="white-space:nowrap;">
+                <button class="action-btn edit-btn"   onclick="openInlineEdit('${log.id}')">✏️ แก้ไข</button>
+                <button class="action-btn delete-btn" onclick="deleteLog('${log.id}')">🗑️ ลบ</button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    }
+
+    /* ═══════════════════════════════
+       INLINE EDIT
+    ═══════════════════════════════ */
+    window.openInlineEdit = (id) => {
+        if(inlineEditId && inlineEditId!==id){
+            const prev=document.getElementById(`edit-row-${inlineEditId}`);
+            if(prev) prev.remove();
+            const origRow=document.getElementById(`row-${inlineEditId}`);
+            if(origRow) origRow.style.display='';
+        }
+        inlineEditId=id;
+        const log=allLogs.find(l=>l.id===id); if(!log) return;
+        const origRow=document.getElementById(`row-${id}`);
+        if(origRow) origRow.style.display='none';
+
+        const stationOpts=Object.keys(FUEL_CATALOG).map(s=>`<option value="${s}"${s===log.station?' selected':''}>${s}</option>`).join('');
+        const fuels = FUEL_CATALOG[log.station]||[];
+        const fuelOpts=fuels.map(f=>`<option value="${f}"${f===log.fuelType?' selected':''}>${f}</option>`).join('');
+
+        const editTr=document.createElement('tr');
+        editTr.id=`edit-row-${id}`;
+        editTr.className='edit-row';
+        editTr.innerHTML=`
+            <td colspan="10">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding:4px 2px;align-items:end;">
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">📅 วันที่</div>
+                        <input type="date" class="inline-input" id="ie-date-${id}" value="${log.date}">
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">🏪 สถานี</div>
+                        <select class="inline-select" id="ie-station-${id}" onchange="updateInlineFuels('${id}',this.value,'')">
+                            ${stationOpts}
+                        </select>
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">🛢️ น้ำมัน</div>
+                        <select class="inline-select" id="ie-fuel-${id}">${fuelOpts}</select>
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">🏁 ไมล์ (KM)</div>
+                        <input type="number" class="inline-input" id="ie-odo-${id}" value="${log.odometer}" step="0.1">
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">💧 ลิตร</div>
+                        <input type="number" class="inline-input" id="ie-liters-${id}" value="${log.liters}" step="0.01">
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">💰 ค่าใช้จ่าย (฿)</div>
+                        <input type="number" class="inline-input" id="ie-cost-${id}" value="${log.cost}" step="0.01">
+                    </div>
+                    <div>
+                        <div style="font-family:'Orbitron';font-size:0.54rem;color:var(--text-muted);margin-bottom:4px;letter-spacing:1px;">📝 หมายเหตุ</div>
+                        <input type="text" class="inline-input" id="ie-note-${id}" value="${log.note||''}">
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:1px;">
+                        <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">💾 บันทึก</button>
+                        <button class="inline-cancel-btn" onclick="cancelInlineEdit('${id}')">✕</button>
+                    </div>
+                </div>
+            </td>
+        `;
+        if(origRow && origRow.nextSibling){ tableBody.insertBefore(editTr, origRow.nextSibling); }
+        else { tableBody.appendChild(editTr); }
+    };
+
+    window.updateInlineFuels = (id, station, currentFuel) => {
+        const sel = document.getElementById(`ie-fuel-${id}`); if(!sel) return;
+        const fuels = FUEL_CATALOG[station]||[];
+        sel.innerHTML = fuels.map(f=>`<option value="${f}"${f===currentFuel?' selected':''}>${f}</option>`).join('');
+    };
+
+    window.saveInlineEdit = async (id) => {
+        const station  = document.getElementById(`ie-station-${id}`)?.value;
+        const fuelType = document.getElementById(`ie-fuel-${id}`)?.value;
+        const date     = document.getElementById(`ie-date-${id}`)?.value;
+        const odometer = parseFloat(document.getElementById(`ie-odo-${id}`)?.value);
+        const liters   = parseFloat(document.getElementById(`ie-liters-${id}`)?.value);
+        const cost     = parseFloat(document.getElementById(`ie-cost-${id}`)?.value);
+        const note     = document.getElementById(`ie-note-${id}`)?.value?.trim()||'';
+        if(!station||!fuelType||!date||isNaN(odometer)||isNaN(liters)||isNaN(cost)){
+            showToast('กรุณากรอกข้อมูลให้ครบถ้วน'); return;
+        }
+        const payload = { date, station, fuelType, odometer, liters, cost, note,
+            timestamp: new Date(date+'T00:00:00+07:00').getTime() };
+        try {
+            await update(ref(db,`fuel_logs/${id}`),payload);
+            showToast('✅ อัปเดตเรียบร้อย');
+            inlineEditId=null;
+        } catch(err){ console.error(err); showToast('บันทึกไม่สำเร็จ'); }
+    };
+
+    window.cancelInlineEdit = (id) => {
+        const editRow = document.getElementById(`edit-row-${id}`);
+        if(editRow) editRow.remove();
+        const origRow = document.getElementById(`row-${id}`);
+        if(origRow) origRow.style.display='';
+        inlineEditId=null;
+    };
+
+    /* ═══════════════════════════════
+       DELETE
+    ═══════════════════════════════ */
+    window.deleteLog = async (id) => {
+        if(inlineEditId===id) cancelInlineEdit(id);
+        if(confirm('ยืนยันการลบข้อมูลนี้?')){
+            try{ await remove(ref(db,`fuel_logs/${id}`)); }
+            catch(err){ console.error(err); showToast('ลบไม่สำเร็จ'); }
+        }
+    };
+
+    /* ═══════════════════════════════
+       RESET FORM
+    ═══════════════════════════════ */
+    window.resetForm = () => {
+        form.reset(); editIdInput.value=''; noteInput.value='';
+        dateInput.value=new Date().toLocaleDateString('sv-SE',{ timeZone:'Asia/Bangkok' });
+        selectedStation=''; selectedFuelType=''; stationInput.value=''; fuelTypeInput.value='';
+        document.querySelectorAll('.station-btn').forEach(b=>b.classList.remove('selected'));
+        document.getElementById('fuelGrid').innerHTML='';
+        document.getElementById('fuelLocked').style.display='flex';
+        formTitle.textContent='บันทึกการเติมน้ำมัน';
+        submitBtn.innerHTML='⚡ บันทึก'; submitBtn.style.cssText='';
+        cancelBtn.style.display='none';
+        ['dot1','dot2','dot3','dot4','dot5'].forEach(id=>{
+            const d=document.getElementById(id);
+            d.classList.remove('active','filled');
+            if(id==='dot1') d.classList.add('active');
+        });
+        stepCheck();
+    };
+
+    /* ═══════════════════════════════
+       SWITCH VIEW
+    ═══════════════════════════════ */
+    window.switchView = (v) => {
+        document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+        document.getElementById(`view-${v}`).classList.add('active');
+        document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelector(`.toggle-btn[onclick="switchView('${v}')"]`)?.classList.add('active');
+        if(v==='stats') updateStats();
+    };
+
+    /* ═══════════════════════════════
+       STATS
+    ═══════════════════════════════ */
+    function updateStats(){
+        const logs = allLogs;
+        const n    = logs.length;
+        if(!n){
+            ['s-total-logs','s-total-km','s-total-cost','s-total-liters',
+             's-avg-price','s-avg-cost','s-avg-liters','s-top-fuel'].forEach(id=>{
+                const el=document.getElementById(id); if(el) el.textContent='—';
+            });
+            clearCharts(); return;
+        }
+        const totalCost   = logs.reduce((a,b)=>a+(b.cost||0),0);
+        const totalLiters = logs.reduce((a,b)=>a+(b.liters||0),0);
+        const maxOdo      = Math.max(...logs.map(l=>l.odometer||0));
+        const minOdo      = Math.min(...logs.map(l=>l.odometer||0));
+        const totalKm     = maxOdo-minOdo;
+        const avgPrice    = totalLiters>0 ? totalCost/totalLiters : 0;
+        const avgCost     = totalCost/n;
+        const avgLiters   = totalLiters/n;
+        const fuelCount={};
+        logs.forEach(l=>{ fuelCount[l.fuelType]=(fuelCount[l.fuelType]||0)+1; });
+        const topFuel=Object.entries(fuelCount).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+
+        setText('s-total-logs', n);
+        setText('s-total-km',   totalKm>0 ? totalKm.toLocaleString('th',{maximumFractionDigits:0}) : '—');
+        setText('s-total-cost', totalCost.toLocaleString('th',{minimumFractionDigits:2,maximumFractionDigits:2}));
+        setText('s-total-liters', totalLiters.toFixed(2));
+        setText('s-avg-price',  avgPrice.toFixed(2));
+        setText('s-avg-cost',   avgCost.toFixed(2));
+        setText('s-avg-liters', avgLiters.toFixed(2));
+        setText('s-top-fuel',   topFuel);
+
+        buildCharts(logs, totalCost);
+    }
+
+    function setText(id,val){
+        const el=document.getElementById(id); if(el) el.textContent=val;
+    }
+
+    function clearCharts(){
+        [costChart,litersChart,priceChart,monthlyChart,
+         cumulativeChart,stationChart,fuelTypeChart,scatterChart].forEach(c=>{
+            c.data.labels=[]; c.data.datasets=[]; c.update();
+        });
+    }
+
+    function buildCharts(logs, totalCost){
+        const labels   = logs.map((_,i)=>`#${i+1}`);
+        const fullDate = logs.map(l=>l.date);
+        const costs    = logs.map(l=>l.cost||0);
+        const liters   = logs.map(l=>l.liters||0);
+        const prices   = logs.map(l=>l.liters>0 ? parseFloat((l.cost/l.liters).toFixed(2)) : 0);
+
+        const getCSS = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+        const P  = getCSS('--primary');
+        const W  = getCSS('--warning');
+        const I  = getCSS('--info');
+        const D  = getCSS('--danger');
+        const PU = getCSS('--purple');
+
+        costChart.data.labels   = labels;
+        costChart.data.datasets = [{
+            label:'ค่าใช้จ่าย (฿)', data:costs,
+            backgroundColor: costs.map(v=> v===Math.max(...costs) ? 'rgba(255,214,10,0.65)' : 'rgba(0,255,65,0.3)'),
+            borderColor:     costs.map(v=> v===Math.max(...costs) ? W : P),
+            borderWidth:1.5, borderRadius:5,
+        }];
+        costChart.options.plugins.tooltip = {
+            callbacks:{ title:(_,[{dataIndex}])=>`ครั้งที่ ${dataIndex+1} · ${fullDate[dataIndex]}`, label:ctx=>`฿${ctx.raw.toFixed(2)}` }
+        };
+        costChart.update();
+
+        litersChart.data.labels   = labels;
+        litersChart.data.datasets = [{
+            label:'ลิตร', data:liters,
+            backgroundColor:'rgba(10,245,255,0.25)', borderColor:I, borderWidth:1.5, borderRadius:5,
+        }];
+        litersChart.options.plugins.tooltip = {
+            callbacks:{ title:(_,[{dataIndex}])=>`ครั้งที่ ${dataIndex+1} · ${fullDate[dataIndex]}`, label:ctx=>`${ctx.raw.toFixed(2)} L` }
+        };
+        litersChart.update();
+
+        priceChart.data.labels   = labels;
+        priceChart.data.datasets = [{
+            label:'฿/ลิตร', data:prices,
+            borderColor:W, backgroundColor:'rgba(255,214,10,0.07)',
+            borderWidth:2, pointRadius:4, pointBackgroundColor:W, pointBorderColor:'rgba(0,0,0,0.5)', pointBorderWidth:1,
+            fill:true, tension:0.4,
+        }];
+        priceChart.options.plugins.tooltip = {
+            callbacks:{ title:(_,[{dataIndex}])=>`ครั้งที่ ${dataIndex+1} · ${fullDate[dataIndex]}`, label:ctx=>`฿${ctx.raw}/ลิตร` }
+        };
+        priceChart.update();
+
+        const monthMap={};
+        logs.forEach(l=>{ const m=l.date?.substring(0,7)||''; monthMap[m]=(monthMap[m]||0)+(l.cost||0); });
+        const mLabels=Object.keys(monthMap).sort();
+        const mVals  =mLabels.map(k=>parseFloat(monthMap[k].toFixed(2)));
+        monthlyChart.data.labels   = mLabels;
+        monthlyChart.data.datasets = [{
+            label:'ค่าน้ำมันรายเดือน (฿)', data:mVals,
+            backgroundColor:'rgba(191,95,255,0.3)', borderColor:PU, borderWidth:1.5, borderRadius:5,
+        }];
+        monthlyChart.update();
+
+        let runSum=0;
+        const cumVals=costs.map(c=>{ runSum+=c; return parseFloat(runSum.toFixed(2)); });
+        cumulativeChart.data.labels   = labels;
+        cumulativeChart.data.datasets = [{
+            label:'สะสมค่าน้ำมัน (฿)', data:cumVals,
+            borderColor:D, backgroundColor:'rgba(255,45,85,0.07)',
+            borderWidth:2.5, pointRadius:3, pointBackgroundColor:D,
+            fill:true, tension:0.35,
+        }];
+        cumulativeChart.options.plugins.tooltip = {
+            callbacks:{ title:(_,[{dataIndex}])=>`ครั้งที่ ${dataIndex+1} · ${fullDate[dataIndex]}`, label:ctx=>`฿${ctx.raw.toLocaleString()} รวม` }
+        };
+        cumulativeChart.update();
+
+        const stMap={};
+        logs.forEach(l=>{ stMap[l.station]=(stMap[l.station]||0)+1; });
+        const stLabels=Object.keys(stMap); const stVals=stLabels.map(k=>stMap[k]);
+        const stColors=['#00ff41','#00b4ff','#ffd60a','#ff2d55','#bf5fff','#ff6b00','#0af5ff','#78909c'];
+        stationChart.data.labels   = stLabels;
+        stationChart.data.datasets = [{ data:stVals, backgroundColor:stColors.slice(0,stLabels.length).map(c=>c+'4d'), borderColor:stColors.slice(0,stLabels.length), borderWidth:2 }];
+        stationChart.update();
+
+        const ftMap={};
+        logs.forEach(l=>{ ftMap[l.fuelType]=(ftMap[l.fuelType]||0)+1; });
+        const ftLabels=Object.keys(ftMap); const ftVals=ftLabels.map(k=>ftMap[k]);
+        const ftColors=ftLabels.map(f=>FUEL_COLORS[f]||'#888');
+        fuelTypeChart.data.labels   = ftLabels;
+        fuelTypeChart.data.datasets = [{ data:ftVals, backgroundColor:ftColors.map(c=>c+'4d'), borderColor:ftColors, borderWidth:2 }];
+        fuelTypeChart.update();
+
+        const scatterData=logs.map(l=>({ x:l.liters||0, y:l.cost||0 }));
+        const scColors=logs.map(l=>FUEL_COLORS[l.fuelType]||'#aaa');
+        scatterChart.data.datasets = [{
+            label:'ลิตร vs ฿', data:scatterData,
+            backgroundColor:scColors.map(c=>c+'99'), borderColor:scColors, borderWidth:1.5, pointRadius:6, pointHoverRadius:9,
+        }];
+        scatterChart.options.plugins.tooltip = {
+            callbacks:{
+                title:(_,[{dataIndex}])=>`${logs[dataIndex].fuelType} · ${fullDate[dataIndex]}`,
+                label:ctx=>[`ลิตร: ${ctx.raw.x.toFixed(2)} L`,`ค่าใช้จ่าย: ฿${ctx.raw.y.toFixed(2)}`]
+            }
+        };
+        scatterChart.update();
+    }
+
+    /* ═══════════════════════════════
+       CHART TOGGLE
+    ═══════════════════════════════ */
+    window.toggleChart = (pill) => {
+        const key   = pill.dataset.chart;
+        const block = document.getElementById(`block-${key}`);
+        const isOn  = pill.classList.toggle('active');
+        if(block) block.classList.toggle('hidden', !isOn);
+    };
+
+</script>
+</body>
+</html>
